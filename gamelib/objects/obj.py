@@ -15,15 +15,14 @@ class GameObject(object):
         self.acc = vector.Vec2d(0, 0)
         self.sprite = None
         
-    def update(self, dt):
-        self.integrate(0, dt)
+    def update(self, dt2):
+        self.integrate(0, dt2)
         self.sprite.set_position(self.pos.x, self.pos.y)
 
-    def integrate(self, t, dt, dampening=1.0):
+    def integrate(self, t, dt2, dampening=1.0):
         """
         Perform Verlet integration
-        """        
-        dt2 = dt * dt
+        """                
         p = self.pos
         self.pos = self.pos * (1.0 + dampening) - self.pos0 * dampening + self.acc * dt2
         self.pos0 = p

@@ -1,13 +1,15 @@
 from pyglet.gl import *
 from pyglet import clock
 from pyglet.window import key
+from gamelib import fixedsteploop
 
 import edit
 import play
 
 class Controller(pyglet.window.Window):
 
-    DT = 1.0 / 60
+    DT = 1 / 60.0
+    DT2 = DT * DT
 
     properties = {
         'width': 1280, 
@@ -22,7 +24,8 @@ class Controller(pyglet.window.Window):
         self.states = {}
         self.current_state = None
         self.fps_display = pyglet.clock.ClockDisplay()
-        self.timer = clock.schedule_interval(self.update, self.DT)
+        # self.timer = clock.schedule_interval(self.update, self.DT)
+        self.timer = fixedsteploop.FixedStepLoop(self.update, self.DT, 1/30.0)
                 
     def switch(self, name, state=None):
 
@@ -49,7 +52,7 @@ class Controller(pyglet.window.Window):
             self.switch('play', play.Game(window=self))
 
     def update(self, dt):
-        self.current_state.update(self.DT)
+        self.current_state.update(self.DT2)
 
     def on_key_press(self, symbol, modifiers):        
 

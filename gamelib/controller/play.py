@@ -7,7 +7,6 @@ from gamelib import vector
 from gamelib import map
 from gamelib.objects import player
 
-
 class Game(object):
 
     """
@@ -30,17 +29,16 @@ class Game(object):
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glShadeModel(GL_SMOOTH)
-        glClearColor(0.1,0.05,0.0,1.0)
+        glClearColor(0.1, 0.05, 0.0, 1.0)
 
     def update(self, dt):
         # sample input
         if self.keys[key.LEFT]:
-            self.player.pos.x -= 0.75
+            self.player.pos.x -= 0.5
         elif self.keys[key.RIGHT]:
-            self.player.pos.x += 0.75
+            self.player.pos.x += 0.5
         if self.keys[key.SPACE]:
             self.player.jump()
-
 
         # record input
 

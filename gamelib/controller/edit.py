@@ -30,12 +30,12 @@ class Game(object):
 
     def update(self, dt):
         pass
-        # sample input        
+        # sample input
         # record input
         # update
         # self.map.update(self.dt)
         # collide
-        # resolve        
+        # resolve
     
     def on_draw(self):
         self.window.clear()
