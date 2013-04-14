@@ -1,7 +1,8 @@
 from pyglet.gl import *
 from pyglet.window import key
 
-import game
+import edit
+import play
 
 class Controller(pyglet.window.Window):
 
@@ -30,12 +31,10 @@ class Controller(pyglet.window.Window):
         self.switch(title.Title)
 
     def play(self):        
-        self.switch(game.Game)
+        self.switch(edit.Game)
 
-    def on_key_press(self, symbol, modifiers):
-        if symbol == key.ESCAPE:
-            pyglet.app.exit()
-        elif (modifiers & (key.MOD_CTRL | key.MOD_COMMAND)) and symbol == key.Q:
+    def on_key_press(self, symbol, modifiers):        
+        if (modifiers & (key.MOD_CTRL | key.MOD_COMMAND)) and symbol == key.Q:
             pyglet.app.exit()
         elif (modifiers & (key.MOD_CTRL | key.MOD_COMMAND)) and symbol == key.F:
             self.set_fullscreen(not self.fullscreen)

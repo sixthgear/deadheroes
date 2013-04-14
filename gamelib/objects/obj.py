@@ -9,7 +9,7 @@ class GameObject(object):
 
     def __init__(self, x, y):    
 
-        # self.loc = Point(x, y)
+        self.loc = Point(x, y)
         self.pos = vector.Vec2d(x, y)
         self.vel = vector.Vec2d(0, 0)
         self.acc = vector.Vec2d(0, 0)        
