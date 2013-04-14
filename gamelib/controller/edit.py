@@ -17,9 +17,9 @@ class Game(object):
         self.window = window
         self.music = None                
         self.keys = key.KeyStateHandler()
-        self.cursor = vector.Vec2d(0,0)        
+        self.cursor = [0,0]
         self.map = map.Map(40, 25)
-        self.mode = 0
+        self.mode = 1
         self.init_gl()
 
     def init_gl(self):
@@ -30,12 +30,6 @@ class Game(object):
 
     def update(self, dt):
         pass
-        # sample input
-        # record input
-        # update
-        # self.map.update(self.dt)
-        # collide
-        # resolve
     
     def on_draw(self):
         self.window.clear()
@@ -43,30 +37,37 @@ class Game(object):
         self.window.fps_display.draw()
 
     def on_mouse_motion(self, x, y, dx, dy): 
-        self.cursor.x = x
-        self.cursor.y = y
-        self.map.highlight(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE)
+        self.cursor = [x / map.MAP_TILESIZE, y / map.MAP_TILESIZE]
+        self.map.highlight(*self.cursor)
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        if x / map.MAP_TILESIZE != self.cursor[0] or y / map.MAP_TILESIZE != self.cursor[1]:
+            self.on_mouse_press(x, y, buttons, modifiers)
         self.on_mouse_motion(x, y, dx, dy)
-        self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.mode)
+
 
     def on_key_press(self, symbol, modifiers):        
         if symbol == key.ESCAPE:
             pyglet.app.exit()
-        if symbol == key.SPACE:
+        if symbol == key.TAB:
             pyglet.clock.schedule_once(self.window.play, 0.0)
+
+        # set block type
         if symbol == key._0:
-            self.mode = 0
+            self.mode = map.T_EMPTY
         if symbol == key._1:
-            self.mode = 1
+            self.mode = map.T_BLOCK_WOOD
         if symbol == key._2:
-            self.mode = 2
+            self.mode = map.T_BLOCK_CONCRETE
         if symbol == key._3:
-            self.mode = 3
+            self.mode = map.T_BLOCK_STEEL
 
     def on_mouse_press(self, x, y, button, modifiers):
-        pass 
-            
+        
+        if button == 1: 
+            self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.mode)         
+        else:          
+            self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, 0)
+                        
     def on_mouse_release(self, x, y, button, modifiers):
         pass

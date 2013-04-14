@@ -26,11 +26,11 @@ class Map(object):
         self.grid = []
         for i in range(width * height):
             if i / width in [0, height-1] or i % width in [0, width-1]:
-                t = 1
+                # create outside walls
+                self.grid.append(Tile(type=T_BLOCK_WOOD))
             else:
-                t = random.choice((0,0,0,0,0,0,0,0,0,0,0,0,2,3))
-            self.grid.append(Tile(type=t))
-
+                self.grid.append(Tile(type=T_EMPTY))
+            
         # object data
         # these are all the game objects the maps needs to render over top of the tiles
         # this includes enemies, switches, wires, etc.
@@ -61,16 +61,23 @@ class Map(object):
         """
         return self.grid[y*self.width + x]
 
-    def update(self, dt):
-        pass
+    def update(self, dt2):
+        for o in objects:
+            o.update(dt2)
 
     def change(self, x, y, t):
+        """
+        Modify the map and mark dirty so we rebuild the list.
+        """
         old = self.get(x,y)
         if old.type != t:        
             old.type = t
             self._vertex_list_dirty = True
 
     def highlight(self, x, y):
+        """
+        Highlight a given tile location.
+        """
         self._highlight.vertices = [
             x*MAP_TILESIZE, y*MAP_TILESIZE,
             x*MAP_TILESIZE, (y+1)*MAP_TILESIZE,
@@ -82,7 +89,6 @@ class Map(object):
         """
         Render the current map, checking if the vertex list has been dirtied and needs to be rebuilt.
         """
-
         # check if we need to rebuild the vertex list. We defer this until drawing time so that 
         # every operation that modifies the map doesn't need to rebuild this list every time.
         if self._vertex_list_dirty:
@@ -97,6 +103,7 @@ class Map(object):
         # draw the objects batch
         self._object_sprite_batch.draw()
 
+        # draw the highlight square
         glDisable(GL_TEXTURE_2D)
         glColor4f(1,1,1,.5)
         self._highlight.draw(GL_QUADS)
@@ -104,7 +111,10 @@ class Map(object):
 
 
     def rebuild_vertices(self):
-
+        """
+        Cycle through our map data and build a grid of quads with correct texcoords. This will be used
+        to render the map.
+        """        
         self._vertex_list.delete()        
         vertices = []
         tex_coords = []
