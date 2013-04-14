@@ -4,6 +4,9 @@ from gamelib import vector
 
 Point = namedtuple('Point', 'x y')
 
+COL_AABB = 0x00
+COL_CIRCLE = 0x01
+
 class GameObject(object):
 
     tex = None

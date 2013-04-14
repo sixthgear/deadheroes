@@ -1,9 +1,18 @@
 import random
 import pyglet
+
+from gamelib import collide
+from gamelib import vector
 from pyglet.gl import *
 from pyglet import image
 
 MAP_TILESIZE = 32          # pixel size of a tile
+
+
+sprites = image.ImageGrid(pyglet.resource.texture('sprites.png'), 8, 16).get_texture_sequence()
+for s in sprites:
+    pass
+    # s.anchor_x = 16
 
 class Map(object):
     """
@@ -11,7 +20,7 @@ class Map(object):
     """
 
     tiles_tex = pyglet.resource.texture('tiles.png')
-    sprites = image.ImageGrid(pyglet.resource.texture('sprites.png'), 8, 16).get_texture_sequence()
+    
 
     def __init__(self, width, height):
         """
@@ -143,6 +152,46 @@ class Map(object):
         self._vertex_list = pyglet.graphics.vertex_list(len(vertices)/2, 'v2f', 't2f')
         self._vertex_list.vertices = vertices
         self._vertex_list.tex_coords = tex_coords
+
+
+    def collide(self, object):
+
+        collisions = []
+        x0, y0 = int(object.pos.x) / MAP_TILESIZE, int(object.pos.y) / MAP_TILESIZE
+        x1, y1 = int(object.pos.x + object.width) / MAP_TILESIZE + 1, int(object.pos.y + object.height) / MAP_TILESIZE + 1
+
+        for y in range(y0, y1):
+            for x in range(x0,x1):
+                tile = self.get(x, y)
+                tpos = vector.Vec2d(x*MAP_TILESIZE,y*MAP_TILESIZE)
+                if tile.type == T_EMPTY:
+                    continue
+                else:
+                    if collide.AABB_to_AABB(tpos, MAP_TILESIZE, MAP_TILESIZE, object.pos, object.width, object.height):
+
+                        l = (object.pos.x + object.width) - tpos.x 
+                        b = (object.pos.y + object.height) - tpos.y
+                        r = (tpos.x + MAP_TILESIZE) - object.pos.x
+                        t = (tpos.y + MAP_TILESIZE) - object.pos.y
+                        
+                        if l < r and l < t and l < b:
+                            object.pos.x -= l
+                        elif r < l and r < t and r < b:
+                            object.pos.x += r
+                        elif t < b and t < l and t < r:
+                            object.pos.y += t
+                            object.ground()              
+                        elif b < t and b < l and b < r:
+                            object.pos.y -= b
+                        else:
+                            pass
+
+                        collisions.append((object, tile))
+
+        return collisions
+        #self.get(x,y).collide(obj)
+
+
         
 T_EMPTY             = 0x00
 T_BLOCK_WOOD        = 0x01
@@ -158,3 +207,9 @@ class Tile(object):
     """
     def __init__(self, type):
         self.type = type
+        self.objects = [] # references to objects contained here
+
+    def collide(self, obj):
+        pass
+
+

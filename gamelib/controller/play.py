@@ -77,7 +77,11 @@ class Game(object):
         - collide player against any objects hashed in the area
         - resolve        
         """
-        pass
+
+        collisions = self.map.collide(self.player)
+        if collisions:
+            pass
+            # print collisions
     
     def on_draw(self):
         """

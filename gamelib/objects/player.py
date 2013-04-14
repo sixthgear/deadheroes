@@ -9,13 +9,21 @@ JUMPING     = 0x01
 FALLING     = 0x02
 
 class Player(obj.GameObject):
+
+    collide = obj.COL_AABB
+    width = 18
+    height = 43
     
     def __init__(self, x=320, y=320):
         super(Player, self).__init__(x, y)
         self.acc.y =  -2000
-        self.sprite = sprite.Sprite(map.Map.sprites[0])
+        self.sprite = sprite.Sprite(map.sprites[0])
         self.air = FALLING
         self.jump_distance = 0
+
+
+    def ground(self):
+        self.air = ON_GROUND
 
     def jump(self):
 
@@ -36,10 +44,4 @@ class Player(obj.GameObject):
     def update(self, dt2):
 
         self.integrate(0, dt2, dampening=0.90)
-
-        if self.pos.y < 32:
-            self.pos0.y = 32
-            self.pos.y = 32
-            self.air = ON_GROUND
-
         self.sprite.set_position(self.pos.x, self.pos.y)
