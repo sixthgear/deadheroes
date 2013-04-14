@@ -25,4 +25,6 @@ class GameObject(object):
         """                
         p = self.pos
         self.pos = self.pos * (1.0 + dampening) - self.pos0 * dampening + self.acc * dt2
+        # self.pos.x = self.pos.x * (1.0 + dampening) - self.pos0.x * dampening + self.acc.x * dt2
+        # self.pos.y = self.pos.y * (1.0 + dampening) - self.pos0.y * dampening + self.acc.y * dt2
         self.pos0 = p

@@ -19,7 +19,7 @@ class Game(object):
         self.keys = key.KeyStateHandler()
         self.cursor = [0,0]
         self.map = map.Map(40, 25)
-        self.mode = 1
+        self.mode = map.T_BLOCK_WOOD
         self.init_gl()
 
     def init_gl(self):
@@ -45,7 +45,6 @@ class Game(object):
             self.on_mouse_press(x, y, buttons, modifiers)
         self.on_mouse_motion(x, y, dx, dy)
 
-
     def on_key_press(self, symbol, modifiers):        
         if symbol == key.ESCAPE:
             pyglet.app.exit()
@@ -62,8 +61,7 @@ class Game(object):
         if symbol == key._3:
             self.mode = map.T_BLOCK_STEEL
 
-    def on_mouse_press(self, x, y, button, modifiers):
-        
+    def on_mouse_press(self, x, y, button, modifiers):        
         if button == 1: 
             self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.mode)         
         else:          

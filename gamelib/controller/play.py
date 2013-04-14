@@ -42,11 +42,15 @@ class Game(object):
         """
         # sample input
         if self.keys[key.LEFT]:
-            self.player.pos.x -= 0.5
+            self.player.acc.x = -2000
         elif self.keys[key.RIGHT]:
-            self.player.pos.x += 0.5
+            self.player.acc.x = 2000
+        else:
+            self.player.acc.x = 0
         if self.keys[key.SPACE]:
             self.player.jump()
+        elif self.player.air == player.JUMPING:
+            self.player.air = player.FALLING
 
         # record input for this frame
 
@@ -88,7 +92,7 @@ class Game(object):
         """
         Non-gameplay related keys.
         """
+        if symbol == key.ESCAPE:
+            pyglet.app.exit()
         if symbol == key.TAB:            
-            pyglet.clock.schedule_once(self.window.edit, 0.0)
-        if symbol == key.SPACE:
-            pass
+            pyglet.clock.schedule_once(self.window.edit, 0.0)        

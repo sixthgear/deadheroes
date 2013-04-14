@@ -62,7 +62,7 @@ class Map(object):
         return self.grid[y*self.width + x]
 
     def update(self, dt2):
-        for o in objects:
+        for o in self.objects:
             o.update(dt2)
 
     def change(self, x, y, t):
