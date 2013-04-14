@@ -1,6 +1,7 @@
 import random
 import pyglet
 from pyglet.gl import *
+from pyglet import image
 
 MAP_TILESIZE = 32          # pixel size of a tile
 
@@ -9,7 +10,8 @@ class Map(object):
     The Map class holds a single multi-level dungeon.
     """
 
-    tex = pyglet.resource.texture('sprites.png')
+    tiles_tex = pyglet.resource.texture('tiles.png')
+    sprites = image.ImageGrid(pyglet.resource.texture('sprites.png'), 8, 16).get_texture_sequence()
 
     def __init__(self, width, height):
         """
@@ -63,8 +65,10 @@ class Map(object):
         pass
 
     def change(self, x, y, t):
-        self.get(x,y).type = t
-        self._vertex_list_dirty = True
+        old = self.get(x,y)
+        if old.type != t:        
+            old.type = t
+            self._vertex_list_dirty = True
 
     def highlight(self, x, y):
         self._highlight.vertices = [
@@ -87,7 +91,7 @@ class Map(object):
 
         # bind the tile texture and draw the whole map
         glEnable(GL_TEXTURE_2D)
-        glBindTexture(self.tex.target, self.tex.id)
+        glBindTexture(self.tiles_tex.target, self.tiles_tex.id)
         self._vertex_list.draw(GL_QUADS)
 
         # draw the objects batch

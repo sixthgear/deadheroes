@@ -8,7 +8,7 @@ class Vec2d(object):
         self.x = float(x)
         self.y = float(y)
     
-    def __add__(self, other):
+    def __add__(self, other):    
         return Vec2d(self.x+other.x, self.y+other.y)
     
     def __sub__(self, other):

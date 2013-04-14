@@ -11,14 +11,11 @@ class Game(object):
 
     """
     The Game class is THE MAN.
-    """
-
-    dt = 1/30.0
+    """    
 
     def __init__(self, window):     
         self.window = window
-        self.music = None        
-        self.timer = clock.schedule_interval(self.update, 1/30.0)
+        self.music = None                
         self.keys = key.KeyStateHandler()
         self.cursor = vector.Vec2d(0,0)        
         self.map = map.Map(40, 25)
@@ -54,12 +51,11 @@ class Game(object):
         self.on_mouse_motion(x, y, dx, dy)
         self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.mode)
 
-    def on_key_press(self, symbol, modifiers):
-        
+    def on_key_press(self, symbol, modifiers):        
         if symbol == key.ESCAPE:
             pyglet.app.exit()
         if symbol == key.SPACE:
-            pass
+            pyglet.clock.schedule_once(self.window.play, 0.0)
         if symbol == key._0:
             self.mode = 0
         if symbol == key._1:
