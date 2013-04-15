@@ -32,7 +32,7 @@ class Player(obj.GameObject):
         if self.air == ON_GROUND:
             self.pos.y += 4.0
             self.air = JUMPING
-            self.jump_distance = 1.4
+            self.jump_distance = 1.5
         elif self.air == JUMPING:
             vel = self.pos0 - self.pos
             if vel.y >= 0:

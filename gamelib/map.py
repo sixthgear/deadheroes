@@ -42,7 +42,7 @@ class Map(object):
             for x in range(self.width):                
                 if y in [0, height-1] or x in [0, width-1]:
                     self.change(x, y, T_BLOCK_WOOD)
-                                   
+
         # object data
         # these are all the game objects the maps needs to render over top of the tiles
         # this includes enemies, switches, wires, etc.
@@ -56,7 +56,7 @@ class Map(object):
 
     def load(cls, map_id):
         """
-        Loads a map from the server and returns a new Map object.
+        Loads a map from the server and returns a new Map obj.
         """
         m = cls(48, 32)
         return m
@@ -189,60 +189,70 @@ class Map(object):
         self._vertex_list.tex_coords = tex_coords
 
 
-    def collide(self, object):
+    def collide(self, obj):
 
         collisions = []
-        x0, y0 = int(object.pos.x) / MAP_TILESIZE, int(object.pos.y) / MAP_TILESIZE
-        x1, y1 = int(object.pos.x + object.width) / MAP_TILESIZE + 1, int(object.pos.y + object.height) / MAP_TILESIZE + 1
+        x0, y0 = int(obj.pos.x) / MAP_TILESIZE, int(obj.pos.y) / MAP_TILESIZE
+        x1, y1 = int(obj.pos.x + obj.width) / MAP_TILESIZE + 1, int(obj.pos.y + obj.height) / MAP_TILESIZE + 1
 
-        edges = []
+        
 
         for y in range(y0, y1):
             for x in range(x0,x1):
 
                 tile = self.get(x, y)
+
                 tpos = vector.Vec2d(x*MAP_TILESIZE,y*MAP_TILESIZE)
+            
                 if tile.type == T_EMPTY:
                     continue
-                else:
-                    if collide.AABB_to_AABB(tpos, MAP_TILESIZE, MAP_TILESIZE, object.pos, object.width, object.height):
-                        
-                        if tile.edge_flags & 0x1:
-                            edges.append(((tpos.y + MAP_TILESIZE) - object.pos.y, 0x1))
-                        if tile.edge_flags & 0x2:
-                            edges.append(((tpos.x + MAP_TILESIZE) - object.pos.x, 0x2))
-                        if tile.edge_flags & 0x4:
-                            edges.append(((object.pos.y + object.height) - tpos.y, 0x4))
-                        if tile.edge_flags & 0x8:
-                            edges.append(((object.pos.x + object.width) - tpos.x, 0x8))
-                                            
-                        if edges:    
-                            # calculate resolution
-                            projected_edge = sorted(edges)[0]
 
-                            if projected_edge[1] == 0x1:
-                                object.pos.y += projected_edge[0]
-                                object.pos0.y = object.pos.y
-                                object.ground()                                
-                            if projected_edge[1] == 0x2:
-                                object.pos.x += projected_edge[0]
-                                object.pos0.x = object.pos.x
-                                object.acc.x = 0
-                            if projected_edge[1] == 0x4:
-                                object.pos.y -= projected_edge[0]
-                                object.pos0.y = object.pos.y
-                            if projected_edge[1] == 0x8:
-                                object.pos.x -= projected_edge[0]
-                                object.pos0.x = object.pos.x                                
-                                object.acc.x = 0
+                elif collide.AABB_to_AABB(tpos, MAP_TILESIZE, MAP_TILESIZE, obj.pos, obj.width, obj.height):                            
+                    # problems: we need to calculate not just one projection, but two to get out of corner collisions
+                    projected_edge = (9999, 0x0)
 
+                    # check for edge intersections
+                    top = tile.edge_flags & 0x1 and collide.AABB_to_AABB(
+                        vector.Vec2d(tpos.x, tpos.y + MAP_TILESIZE), MAP_TILESIZE, 0, obj.pos, obj.width, obj.height)
+                    bottom = tile.edge_flags & 0x4 and collide.AABB_to_AABB(
+                        vector.Vec2d(tpos.x, tpos.y), MAP_TILESIZE, 0, obj.pos, obj.width, obj.height)
+                    left = tile.edge_flags & 0x8 and collide.AABB_to_AABB(
+                        vector.Vec2d(tpos.x, tpos.y), 0, MAP_TILESIZE, obj.pos, obj.width, obj.height)
+                    right = tile.edge_flags & 0x2 and collide.AABB_to_AABB(
+                        vector.Vec2d(tpos.x+MAP_TILESIZE, tpos.y), 0, MAP_TILESIZE, obj.pos, obj.width, obj.height)
 
-                            # object.pos0.x = object.pos.x
-                            # object.pos0.y = object.pos.y
-                            collisions.append((object, tile))
+                    if top and (tpos.y + MAP_TILESIZE) - obj.pos.y < projected_edge:
+                        projected_edge = ((tpos.y + MAP_TILESIZE) - obj.pos.y, 0x1)
+                    if right and (tpos.x + MAP_TILESIZE) - obj.pos.x < projected_edge:
+                        projected_edge =((tpos.x + MAP_TILESIZE) - obj.pos.x, 0x2)
+                    if bottom and (obj.pos.y + obj.height) - tpos.y < projected_edge:
+                        projected_edge = ((obj.pos.y + obj.height) - tpos.y, 0x4)
+                    if left and (obj.pos.x + obj.width) - tpos.x < projected_edge:
+                        projected_edge = ((obj.pos.x + obj.width) - tpos.x, 0x8)
+                
+                    # calculate resolution
+                    if projected_edge[1] != 0x0:
+                        collisions.append((object, tile))
+                        self.change(x,y,T_BLOCK_CONCRETE)
+
+                    if projected_edge[1] == 0x1:
+                        obj.pos.y += projected_edge[0]
+                        obj.pos0.y = obj.pos.y
+                        obj.ground()
+                    elif projected_edge[1] == 0x2:
+                        obj.pos.x += projected_edge[0]
+                        obj.pos0.x = obj.pos.x
+                        obj.acc.x = 0
+                    elif projected_edge[1] == 0x4:
+                        obj.pos.y -= projected_edge[0]
+                        obj.pos0.y = obj.pos.y                
+                    elif projected_edge[1] == 0x8:
+                        obj.pos.x -= projected_edge[0]
+                        obj.pos0.x = obj.pos.x                                
+                        obj.acc.x = 0
 
         return collisions
-        #self.get(x,y).collide(obj)
+        
         
 T_EMPTY             = 0x00
 T_BLOCK_WOOD        = 0x01
