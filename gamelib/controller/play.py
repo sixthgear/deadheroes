@@ -79,8 +79,9 @@ class Game(object):
         """
 
         collisions = self.map.collide(self.player)
-        if collisions:
+        for t in collisions:
             pass
+            # self.map.change(x,y,T_BLOCK_CONCRETE)
             # print collisions
     
     def on_draw(self):

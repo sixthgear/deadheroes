@@ -87,28 +87,16 @@ class Map(object):
             
             # swap edge flags
             old.edge_flags = ~old.edge_flags & 0XF
-            # print old.edge_flags, self.get(x-1, y).edge_flags
+            
             # duplicate each edge to neighbor on the opposite side
             if y < self.height-1:
-                self.get(x, y+1).edge_flags = (self.get(x, y+1).edge_flags & 0xB) | ((old.edge_flags & 0x1) << 2) #   top
-            else:
-                old.edge_flags &= 0xE
-
+                self.get(x, y+1).edge_flags = (self.get(x, y+1).edge_flags & E_NOT_BOTTOM) | ((old.edge_flags & E_TOP) << 2) #   top
             if x < self.width-1:
-                self.get(x+1, y).edge_flags = (self.get(x+1, y).edge_flags & 0x7) | ((old.edge_flags & 0x2) << 2) #   right
-            else:
-                old.edge_flags &= 0xD
-
+                self.get(x+1, y).edge_flags = (self.get(x+1, y).edge_flags & E_NOT_LEFT) | ((old.edge_flags & E_RIGHT) << 2) #   right
             if y > 0:
-                self.get(x, y-1).edge_flags = (self.get(x, y-1).edge_flags & 0xE) | ((old.edge_flags & 0x4) >> 2) #   bottom
-            else:
-                old.edge_flags &= 0xB
-
-            if x > 0:
-                self.get(x-1, y).edge_flags = (self.get(x-1, y).edge_flags & 0xD) | ((old.edge_flags & 0x8) >> 2) #   left
-            else:
-                old.edge_flags &= 0x7
-
+                self.get(x, y-1).edge_flags = (self.get(x, y-1).edge_flags & E_NOT_TOP) | ((old.edge_flags & E_BOTTOM) >> 2) #   bottom
+            if x > 0:    
+                self.get(x-1, y).edge_flags = (self.get(x-1, y).edge_flags & E_NOT_RIGHT) | ((old.edge_flags & E_LEFT) >> 2) #   left            
 
         if old.type != t:
             # print self.get(x-1, y).edge_flags
@@ -194,6 +182,9 @@ class Map(object):
         Collide one object against the map.
         """
 
+        # assume this object is falling unless we resolve a ground collisions
+        obj.fall()
+
         # store a list of interecting tiles to return
         collisions = []
 
@@ -213,10 +204,6 @@ class Map(object):
 
                 elif collide.AABB_to_AABB(tpos, MAP_TILESIZE, MAP_TILESIZE, obj.pos, obj.width, obj.height):
 
-                    # keep track of the shortest projected edge for this tile.
-                    # the resolution vector will typically be along the shortest axis of penetration.
-                    projected_edge = (9999, 0x0)
-
                     # check for edge intersections
                     top = tile.edge_flags & 0x1 and collide.AABB_to_AABB(
                         vector.Vec2d(tpos.x, tpos.y + MAP_TILESIZE), MAP_TILESIZE, 0, obj.pos, obj.width, obj.height)
@@ -227,7 +214,12 @@ class Map(object):
                     right = tile.edge_flags & 0x2 and collide.AABB_to_AABB(
                         vector.Vec2d(tpos.x+MAP_TILESIZE, tpos.y), 0, MAP_TILESIZE, obj.pos, obj.width, obj.height)
 
-                    # if we have an edge intersection and 
+
+                    # keep track of the shortest projected edge for this tile.
+                    # the resolution vector will typically be along the shortest axis of penetration.
+                    projected_edge = (9999, 0x0)
+
+                    # if we have an edge intersection and the project edge is smaller than what we've yet seen
                     if top and (tpos.y + MAP_TILESIZE) - obj.pos.y < projected_edge[0]:
                         projected_edge = ((tpos.y + MAP_TILESIZE) - obj.pos.y, 0x1)
                     if right and (tpos.x + MAP_TILESIZE) - obj.pos.x < projected_edge[0]:
@@ -237,30 +229,39 @@ class Map(object):
                     if left and (obj.pos.x + obj.width) - tpos.x < projected_edge[0]:
                         projected_edge = ((obj.pos.x + obj.width) - tpos.x, 0x8)
                 
-                    # calculate resolution
                     if projected_edge[1] != 0x0:
-                        collisions.append((object, tile))
-                        self.change(x,y,T_BLOCK_CONCRETE)
+                        collisions.append(tile)
 
+                    # calculate resolution
                     if projected_edge[1] == 0x1:
                         obj.pos.y += projected_edge[0]
-                        obj.pos0.y = obj.pos.y
+                        # obj.pos0.y = obj.pos.y
                         obj.ground()
                     elif projected_edge[1] == 0x2:
                         obj.pos.x += projected_edge[0]
-                        obj.pos0.x = obj.pos.x
-                        obj.acc.x = 0
+                        # obj.pos0.x = obj.pos.x
+                        # obj.acc.x = 0
                     elif projected_edge[1] == 0x4:
                         obj.pos.y -= projected_edge[0]
-                        obj.pos0.y = obj.pos.y                
+                        # obj.pos0.y = obj.pos.y                
                     elif projected_edge[1] == 0x8:
                         obj.pos.x -= projected_edge[0]
-                        obj.pos0.x = obj.pos.x                                
-                        obj.acc.x = 0
+                        # obj.pos0.x = obj.pos.x                                
+                        # obj.acc.x = 0
 
         return collisions
         
-        
+
+E_TOP               = 0x01
+E_RIGHT             = 0x02
+E_BOTTOM            = 0x04
+E_LEFT              = 0x08
+
+E_NOT_TOP           = ~E_TOP & 0xF
+E_NOT_RIGHT         = ~E_RIGHT & 0xF
+E_NOT_BOTTOM        = ~E_BOTTOM & 0xF
+E_NOT_LEFT          = ~E_LEFT & 0xF
+
 T_EMPTY             = 0x00
 T_BLOCK_WOOD        = 0x01
 T_BLOCK_CONCRETE    = 0x02

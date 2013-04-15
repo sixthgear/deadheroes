@@ -27,6 +27,10 @@ class Player(obj.GameObject):
     def ground(self):
         self.air = ON_GROUND
 
+    def fall(self):
+        if self.air == ON_GROUND:
+            self.air = FALLING
+
     def jump(self):
 
         if self.air == ON_GROUND:
