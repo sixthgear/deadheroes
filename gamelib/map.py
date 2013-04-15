@@ -190,25 +190,31 @@ class Map(object):
 
 
     def collide(self, obj):
+        """
+        Collide one object against the map.
+        """
 
+        # store a list of interecting tiles to return
         collisions = []
+
+        # determine a range of x,y tile indices to iterate through. For objects smaller than the size of
+        # the grid, this will be at most 4 cells.        
         x0, y0 = int(obj.pos.x) / MAP_TILESIZE, int(obj.pos.y) / MAP_TILESIZE
         x1, y1 = int(obj.pos.x + obj.width) / MAP_TILESIZE + 1, int(obj.pos.y + obj.height) / MAP_TILESIZE + 1
-
-        
 
         for y in range(y0, y1):
             for x in range(x0,x1):
 
                 tile = self.get(x, y)
-
                 tpos = vector.Vec2d(x*MAP_TILESIZE,y*MAP_TILESIZE)
             
                 if tile.type == T_EMPTY:
                     continue
 
-                elif collide.AABB_to_AABB(tpos, MAP_TILESIZE, MAP_TILESIZE, obj.pos, obj.width, obj.height):                            
-                    # problems: we need to calculate not just one projection, but two to get out of corner collisions
+                elif collide.AABB_to_AABB(tpos, MAP_TILESIZE, MAP_TILESIZE, obj.pos, obj.width, obj.height):
+
+                    # keep track of the shortest projected edge for this tile.
+                    # the resolution vector will typically be along the shortest axis of penetration.
                     projected_edge = (9999, 0x0)
 
                     # check for edge intersections
@@ -221,13 +227,14 @@ class Map(object):
                     right = tile.edge_flags & 0x2 and collide.AABB_to_AABB(
                         vector.Vec2d(tpos.x+MAP_TILESIZE, tpos.y), 0, MAP_TILESIZE, obj.pos, obj.width, obj.height)
 
-                    if top and (tpos.y + MAP_TILESIZE) - obj.pos.y < projected_edge:
+                    # if we have an edge intersection and 
+                    if top and (tpos.y + MAP_TILESIZE) - obj.pos.y < projected_edge[0]:
                         projected_edge = ((tpos.y + MAP_TILESIZE) - obj.pos.y, 0x1)
-                    if right and (tpos.x + MAP_TILESIZE) - obj.pos.x < projected_edge:
+                    if right and (tpos.x + MAP_TILESIZE) - obj.pos.x < projected_edge[0]:
                         projected_edge =((tpos.x + MAP_TILESIZE) - obj.pos.x, 0x2)
-                    if bottom and (obj.pos.y + obj.height) - tpos.y < projected_edge:
+                    if bottom and (obj.pos.y + obj.height) - tpos.y < projected_edge[0]:
                         projected_edge = ((obj.pos.y + obj.height) - tpos.y, 0x4)
-                    if left and (obj.pos.x + obj.width) - tpos.x < projected_edge:
+                    if left and (obj.pos.x + obj.width) - tpos.x < projected_edge[0]:
                         projected_edge = ((obj.pos.x + obj.width) - tpos.x, 0x8)
                 
                     # calculate resolution
