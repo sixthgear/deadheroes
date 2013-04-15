@@ -98,6 +98,7 @@ class Game(object):
         Non-gameplay related keys.
         """
         if symbol == key.ESCAPE:
+            self.map.save()
             pyglet.app.exit()
         if symbol == key.TAB:            
             pyglet.clock.schedule_once(self.window.edit, 0.0)        

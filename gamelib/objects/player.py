@@ -14,7 +14,7 @@ class Player(obj.GameObject):
     width = 18
     height = 43
     
-    def __init__(self, x=320, y=320):
+    def __init__(self, x=32, y=32):
         super(Player, self).__init__(x, y)
         self.acc.y =  -2000
         map.sprites[0].anchor_x = 7

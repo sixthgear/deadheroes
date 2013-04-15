@@ -18,7 +18,12 @@ class Game(object):
         self.music = None                
         self.keys = key.KeyStateHandler()
         self.cursor = [0,0]
-        self.map = map.Map(40, 25)
+
+        try:
+            self.map = map.Map.load(0)
+        except:
+            self.map = map.Map(48, 32)
+            
         self.mode = map.T_BLOCK_WOOD
         self.init_gl()
 
@@ -45,9 +50,12 @@ class Game(object):
             self.on_mouse_press(x, y, buttons, modifiers)
         self.on_mouse_motion(x, y, dx, dy)
 
-    def on_key_press(self, symbol, modifiers):        
+    def on_key_press(self, symbol, modifiers):
+
         if symbol == key.ESCAPE:
+            self.map.save()
             pyglet.app.exit()
+
         if symbol == key.TAB:
             pyglet.clock.schedule_once(self.window.play, 0.0)
 

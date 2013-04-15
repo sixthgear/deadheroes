@@ -1,6 +1,6 @@
 import random
 import pyglet
-
+import json
 from gamelib import collide
 from gamelib import vector
 from pyglet.gl import *
@@ -36,7 +36,7 @@ class Map(object):
         for i in range(self.width * self.height):
             self.grid.append(Tile(type=T_EMPTY))
 
-        print len(self.grid)
+        # print len(self.grid)
 
         for y in range(self.height):
             for x in range(self.width):                
@@ -54,19 +54,34 @@ class Map(object):
         self._vertex_list = pyglet.graphics.vertex_list(0, 'v2f', 't2f')
         self._vertex_list_dirty = True    
 
+    @classmethod
     def load(cls, map_id):
         """
         Loads a map from the server and returns a new Map obj.
         """
-        m = cls(48, 32)
+        with open ('mapdata.json', 'r') as f:             
+            data = json.load(f)
+            m = cls(data['width'], data['height'])
+            for i in range(m.width * m.height):
+                m.grid[i] = Tile(data['grid'][i])
+                m.grid[i].edge_flags = data['edges'][i]
+
         return m
 
     def save(self):
         """
         Writes a map to the server in JSON.
         """
-        pass
-
+        with open ('mapdata.json', 'w') as f: 
+            jsondata = json.dumps({
+                'width': self.width,
+                'height': self.height,
+                'grid': [t.type for t in self.grid],
+                'edges': [t.edge_flags for t in self.grid],
+            })
+            f.write(jsondata)
+            
+        
     def get(self, x, y):
         """
         Returns tile at position x, y
@@ -109,8 +124,7 @@ class Map(object):
         """
         Highlight a given tile location.
         """
-        t = self.get(x, y)
-        print x, y, t.edge_flags
+        # t = self.get(x, y)        
         self._highlight.vertices = [
             x*MAP_TILESIZE, y*MAP_TILESIZE,
             x*MAP_TILESIZE, (y+1)*MAP_TILESIZE,
