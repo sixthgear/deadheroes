@@ -33,12 +33,16 @@ class Map(object):
 
         # grid data
         self.grid = []
-        for i in range(width * height):
-            if i / width in [0, height-1] or i % width in [0, width-1]:
-                # create outside walls
-                self.grid.append(Tile(type=T_BLOCK_WOOD))
-            else:
-                self.grid.append(Tile(type=T_EMPTY))
+        for i in range(self.width * self.height):
+            self.grid.append(Tile(type=T_EMPTY))
+
+        print len(self.grid)
+
+        for y in range(self.height):
+            for x in range(self.width):                
+                if y in [0, height-1] or x in [0, width-1]:
+                    self.change(x, y, T_BLOCK_WOOD)
+                
             
         # object data
         # these are all the game objects the maps needs to render over top of the tiles
@@ -49,7 +53,7 @@ class Map(object):
         self._highlight = pyglet.graphics.vertex_list(4, 'v2f')
         self._object_sprite_batch = pyglet.graphics.Batch()
         self._vertex_list = pyglet.graphics.vertex_list(0, 'v2f', 't2f')
-        self._vertex_list_dirty = True
+        self._vertex_list_dirty = True    
 
     def load(cls, map_id):
         """
@@ -79,7 +83,33 @@ class Map(object):
         Modify the map and mark dirty so we rebuild the list.
         """
         old = self.get(x,y)
-        if old.type != t:        
+        if old.type != t:
+
+            # swap edge flags
+            old.edge_flags = ~old.edge_flags & 0XF
+            # print old.edge_flags, self.get(x-1, y).edge_flags
+            # duplicate each edge to neighbor on the opposite side
+            if y < self.height-1:
+                self.get(x, y+1).edge_flags = (self.get(x, y+1).edge_flags & 0xB) | ((old.edge_flags & 0x1) << 2) #   top
+            else:
+                old.edge_flags &= 0xE
+
+            if x < self.width-1:
+                self.get(x+1, y).edge_flags = (self.get(x+1, y).edge_flags & 0x7) | ((old.edge_flags & 0x2) << 2) #   right
+            else:
+                old.edge_flags &= 0xD
+
+            if y > 0:
+                self.get(x, y-1).edge_flags = (self.get(x, y-1).edge_flags & 0xE) | ((old.edge_flags & 0x4) >> 2) #   bottom
+            else:
+                old.edge_flags &= 0xB
+
+            if x > 0:
+                self.get(x-1, y).edge_flags = (self.get(x-1, y).edge_flags & 0xD) | ((old.edge_flags & 0x8) >> 2) #   left
+            else:
+                old.edge_flags &= 0x7
+
+            # print self.get(x-1, y).edge_flags
             old.type = t
             self._vertex_list_dirty = True
 
@@ -87,6 +117,8 @@ class Map(object):
         """
         Highlight a given tile location.
         """
+        t = self.get(x, y)
+        print x, y, t.edge_flags
         self._highlight.vertices = [
             x*MAP_TILESIZE, y*MAP_TILESIZE,
             x*MAP_TILESIZE, (y+1)*MAP_TILESIZE,
@@ -117,7 +149,6 @@ class Map(object):
         glColor4f(1,1,1,.5)
         self._highlight.draw(GL_QUADS)
         glColor4f(1,1,1,1)
-
 
     def rebuild_vertices(self):
         """
@@ -160,38 +191,54 @@ class Map(object):
         x0, y0 = int(object.pos.x) / MAP_TILESIZE, int(object.pos.y) / MAP_TILESIZE
         x1, y1 = int(object.pos.x + object.width) / MAP_TILESIZE + 1, int(object.pos.y + object.height) / MAP_TILESIZE + 1
 
+        edges = []
+
         for y in range(y0, y1):
             for x in range(x0,x1):
+
                 tile = self.get(x, y)
                 tpos = vector.Vec2d(x*MAP_TILESIZE,y*MAP_TILESIZE)
                 if tile.type == T_EMPTY:
                     continue
                 else:
                     if collide.AABB_to_AABB(tpos, MAP_TILESIZE, MAP_TILESIZE, object.pos, object.width, object.height):
-
-                        l = (object.pos.x + object.width) - tpos.x 
-                        b = (object.pos.y + object.height) - tpos.y
-                        r = (tpos.x + MAP_TILESIZE) - object.pos.x
-                        t = (tpos.y + MAP_TILESIZE) - object.pos.y
                         
-                        if l < r and l < t and l < b:
-                            object.pos.x -= l
-                        elif r < l and r < t and r < b:
-                            object.pos.x += r
-                        elif t < b and t < l and t < r:
-                            object.pos.y += t
-                            object.ground()              
-                        elif b < t and b < l and b < r:
-                            object.pos.y -= b
-                        else:
-                            pass
+                        if tile.edge_flags & 0x1:
+                            edges.append(((tpos.y + MAP_TILESIZE) - object.pos.y, 0x1))
+                        if tile.edge_flags & 0x2:
+                            edges.append(((tpos.x + MAP_TILESIZE) - object.pos.x, 0x2))
+                        if tile.edge_flags & 0x4:
+                            edges.append(((object.pos.y + object.height) - tpos.y, 0x4))
+                        if tile.edge_flags & 0x8:
+                            edges.append(((object.pos.x + object.width) - tpos.x, 0x8))
+                                            
+                        if edges:    
+                            # calculate resolution
+                            projected_edge = sorted(edges)[0]
 
-                        collisions.append((object, tile))
+                            if projected_edge[1] == 0x1:
+                                object.pos.y += projected_edge[0]
+                                object.pos0.y = object.pos.y
+                                object.ground()                                
+                            if projected_edge[1] == 0x2:
+                                object.pos.x += projected_edge[0]
+                                object.pos0.x = object.pos.x
+                                object.acc.x = 0
+                            if projected_edge[1] == 0x4:
+                                object.pos.y -= projected_edge[0]
+                                object.pos0.y = object.pos.y
+                            if projected_edge[1] == 0x8:
+                                object.pos.x -= projected_edge[0]
+                                object.pos0.x = object.pos.x                                
+                                object.acc.x = 0
+
+
+                            # object.pos0.x = object.pos.x
+                            # object.pos0.y = object.pos.y
+                            collisions.append((object, tile))
 
         return collisions
         #self.get(x,y).collide(obj)
-
-
         
 T_EMPTY             = 0x00
 T_BLOCK_WOOD        = 0x01
@@ -208,8 +255,7 @@ class Tile(object):
     def __init__(self, type):
         self.type = type
         self.objects = [] # references to objects contained here
+        self.edge_flags = 0x0000
 
     def collide(self, obj):
         pass
-
-

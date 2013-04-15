@@ -12,7 +12,7 @@ class GameObject(object):
     tex = None
 
     def __init__(self, x, y):    
-        self.loc = Point(x, y)        
+        self.loc = Point(x, y)
         self.pos = vector.Vec2d(x, y)
         self.pos0 = vector.Vec2d(x, y)
         self.acc = vector.Vec2d(0, 0)
