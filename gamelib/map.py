@@ -42,8 +42,7 @@ class Map(object):
             for x in range(self.width):                
                 if y in [0, height-1] or x in [0, width-1]:
                     self.change(x, y, T_BLOCK_WOOD)
-                
-            
+                                   
         # object data
         # these are all the game objects the maps needs to render over top of the tiles
         # this includes enemies, switches, wires, etc.
@@ -83,8 +82,9 @@ class Map(object):
         Modify the map and mark dirty so we rebuild the list.
         """
         old = self.get(x,y)
-        if old.type != t:
 
+        if t != T_EMPTY and old.type == T_EMPTY or t == T_EMPTY and old.type != T_EMPTY :
+            
             # swap edge flags
             old.edge_flags = ~old.edge_flags & 0XF
             # print old.edge_flags, self.get(x-1, y).edge_flags
@@ -109,9 +109,13 @@ class Map(object):
             else:
                 old.edge_flags &= 0x7
 
+
+        if old.type != t:
             # print self.get(x-1, y).edge_flags
             old.type = t
             self._vertex_list_dirty = True
+
+
 
     def highlight(self, x, y):
         """
