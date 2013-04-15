@@ -180,7 +180,9 @@ class Map(object):
                 tex_rot = 0
 
                 if tile.edge_flags == E_TOP | E_RIGHT | E_BOTTOM | E_LEFT:
+                    
                     pass
+            
                 elif tile.edge_flags == E_NOT_RIGHT:
                     tex_index += 16
                 elif tile.edge_flags == E_NOT_BOTTOM:
@@ -219,9 +221,9 @@ class Map(object):
                 elif tile.edge_flags == E_LEFT:
                     tex_index += 64
                     tex_rot = 1
-                else:
+                else:                
                     tex_index += 80
-
+        
                 tx0 = float(tex_index % 16) / 16.0
                 ty0 = float(tex_index / 16) / 16.0
                 tx1 = tx0 + 1.0 / 16.0
@@ -229,6 +231,53 @@ class Map(object):
 
                 new_tex_coords = [tx0, ty0, tx0, ty1, tx1, ty1, tx1, ty0]
                 tex_coords += new_tex_coords[tex_rot*2:] + new_tex_coords[:tex_rot*2]
+
+
+                # add corner decals DONT LOOK AT THIS CODEE IM EMBARASSED
+                if x > 0 and y < self.height-1 and self.get(x-1, y+1).type == T_EMPTY and self.get(x-1, y).edge_flags & E_TOP and self.get(x, y+1).edge_flags & E_LEFT:
+                    vertices += [x*MAP_TILESIZE, y*MAP_TILESIZE, x*MAP_TILESIZE, (y+1)*MAP_TILESIZE, (x+1)*MAP_TILESIZE, (y+1)*MAP_TILESIZE, (x+1)*MAP_TILESIZE, y*MAP_TILESIZE,]
+                    tex_index = tile.type + 96
+                    tx0 = float(tex_index % 16) / 16.0
+                    ty0 = float(tex_index / 16) / 16.0
+                    tx1 = tx0 + 1.0 / 16.0
+                    ty1 = ty0 + 1.0 / 16.0
+                    tex_rot = 0
+                    new_tex_coords = [tx0, ty0, tx0, ty1, tx1, ty1, tx1, ty0]
+                    tex_coords += new_tex_coords[tex_rot*2:] + new_tex_coords[:tex_rot*2]
+
+                if x > 0 and y > 0 and self.get(x-1, y-1).type == T_EMPTY and self.get(x-1, y).edge_flags & E_BOTTOM and self.get(x, y-1).edge_flags & E_LEFT:
+                    vertices += [x*MAP_TILESIZE, y*MAP_TILESIZE, x*MAP_TILESIZE, (y+1)*MAP_TILESIZE, (x+1)*MAP_TILESIZE, (y+1)*MAP_TILESIZE, (x+1)*MAP_TILESIZE, y*MAP_TILESIZE,]
+                    tex_index = tile.type + 96
+                    tx0 = float(tex_index % 16) / 16.0
+                    ty0 = float(tex_index / 16) / 16.0
+                    tx1 = tx0 + 1.0 / 16.0
+                    ty1 = ty0 + 1.0 / 16.0                    
+                    tex_rot = 1
+                    new_tex_coords = [tx0, ty0, tx0, ty1, tx1, ty1, tx1, ty0]
+                    tex_coords += new_tex_coords[tex_rot*2:] + new_tex_coords[:tex_rot*2]
+
+                if x < self.width-1 and y > 0 and self.get(x+1, y-1).type == T_EMPTY and self.get(x+1, y).edge_flags & E_BOTTOM and self.get(x, y-1).edge_flags & E_RIGHT:
+                    vertices += [x*MAP_TILESIZE, y*MAP_TILESIZE, x*MAP_TILESIZE, (y+1)*MAP_TILESIZE, (x+1)*MAP_TILESIZE, (y+1)*MAP_TILESIZE, (x+1)*MAP_TILESIZE, y*MAP_TILESIZE,]
+                    tex_index = tile.type + 96
+                    tx0 = float(tex_index % 16) / 16.0
+                    ty0 = float(tex_index / 16) / 16.0
+                    tx1 = tx0 + 1.0 / 16.0
+                    ty1 = ty0 + 1.0 / 16.0
+                    tex_rot = 2
+                    new_tex_coords = [tx0, ty0, tx0, ty1, tx1, ty1, tx1, ty0]
+                    tex_coords += new_tex_coords[tex_rot*2:] + new_tex_coords[:tex_rot*2]
+
+                if x < self.width-1 and y < self.height-1 and self.get(x+1, y+1).type == T_EMPTY and self.get(x+1, y).edge_flags & E_TOP and self.get(x, y+1).edge_flags & E_RIGHT:
+                    vertices += [x*MAP_TILESIZE, y*MAP_TILESIZE, x*MAP_TILESIZE, (y+1)*MAP_TILESIZE, (x+1)*MAP_TILESIZE, (y+1)*MAP_TILESIZE, (x+1)*MAP_TILESIZE, y*MAP_TILESIZE,]
+                    tex_index = tile.type + 96
+                    tx0 = float(tex_index % 16) / 16.0
+                    ty0 = float(tex_index / 16) / 16.0
+                    tx1 = tx0 + 1.0 / 16.0
+                    ty1 = ty0 + 1.0 / 16.0
+                    tex_rot = 3
+                    new_tex_coords = [tx0, ty0, tx0, ty1, tx1, ty1, tx1, ty0]
+                    tex_coords += new_tex_coords[tex_rot*2:] + new_tex_coords[:tex_rot*2]
+
 
         self._vertex_list = pyglet.graphics.vertex_list(len(vertices)/2, 'v2f', 't2f')
         self._vertex_list.vertices = vertices
