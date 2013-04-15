@@ -1,3 +1,26 @@
 TODO
 ----
 
+UI:
+	- HUD (money, info)
+	- dialog box 
+	- button
+	- tile grid for selections (tiles, traps, tools)
+
+	- dungeon selector
+	- tile selector
+	- tool selector
+
+
+Monsters:
+	- Zombie
+	- Robot
+
+Traps:	
+	- Spikes
+	- Pressure plate
+	- Anvil
+	- Door
+
+Tools:
+	- Gun

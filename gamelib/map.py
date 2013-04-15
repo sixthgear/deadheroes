@@ -21,7 +21,6 @@ class Map(object):
 
     tiles_tex = pyglet.resource.texture('tiles.png')
     
-
     def __init__(self, width, height):
         """
         Creates a new blank map.
@@ -36,12 +35,10 @@ class Map(object):
         for i in range(self.width * self.height):
             self.grid.append(Tile(type=T_EMPTY))
 
-        # print len(self.grid)
-
         for y in range(self.height):
             for x in range(self.width):                
                 if y in [0, height-1] or x in [0, width-1]:
-                    self.change(x, y, T_BLOCK_WOOD)
+                    self.change(x, y, T_BLOCK_CONCRETE)
 
         # object data
         # these are all the game objects the maps needs to render over top of the tiles
@@ -119,7 +116,6 @@ class Map(object):
             self._vertex_list_dirty = True
 
 
-
     def highlight(self, x, y):
         """
         Highlight a given tile location.
@@ -168,9 +164,9 @@ class Map(object):
         for y in range(self.height):
             for x in range(self.width):
 
-                tile = self.get(x, y).type
+                tile = self.get(x, y)
 
-                if tile == T_EMPTY: # empty tile, so don't bother creating vertices
+                if tile.type == T_EMPTY: # empty tile, so don't bother creating vertices
                     continue 
 
                 vertices += [
@@ -179,12 +175,60 @@ class Map(object):
                     (x+1)*MAP_TILESIZE, (y+1)*MAP_TILESIZE,
                     (x+1)*MAP_TILESIZE, y*MAP_TILESIZE,
                 ]
-                
-                tx0 = float(tile % 16) / 16.0
-                ty0 = float(tile / 16) / 16.0
+
+                tex_index = tile.type
+                tex_rot = 0
+
+                if tile.edge_flags == E_TOP | E_RIGHT | E_BOTTOM | E_LEFT:
+                    pass
+                elif tile.edge_flags == E_NOT_RIGHT:
+                    tex_index += 16
+                elif tile.edge_flags == E_NOT_BOTTOM:
+                    tex_index += 16
+                    tex_rot = 3
+                elif tile.edge_flags == E_NOT_LEFT:
+                    tex_index += 16
+                    tex_rot = 2
+                elif tile.edge_flags == E_NOT_TOP:
+                    tex_index += 16
+                    tex_rot = 1
+                elif tile.edge_flags == E_TOP | E_BOTTOM:
+                    tex_index += 32                    
+                elif tile.edge_flags == E_LEFT | E_RIGHT:
+                    tex_index += 32
+                    tex_rot = 1
+                elif tile.edge_flags == E_LEFT | E_TOP:
+                    tex_index += 48
+                elif tile.edge_flags == E_TOP | E_RIGHT:
+                    tex_index += 48
+                    tex_rot = 3                   
+                elif tile.edge_flags == E_RIGHT | E_BOTTOM:
+                    tex_index += 48
+                    tex_rot = 2
+                elif tile.edge_flags == E_BOTTOM | E_LEFT:
+                    tex_index += 48
+                    tex_rot = 1                
+                elif tile.edge_flags == E_TOP:
+                    tex_index += 64
+                elif tile.edge_flags == E_RIGHT:
+                    tex_index += 64
+                    tex_rot = 3
+                elif tile.edge_flags == E_BOTTOM:
+                    tex_index += 64
+                    tex_rot = 2
+                elif tile.edge_flags == E_LEFT:
+                    tex_index += 64
+                    tex_rot = 1
+                else:
+                    tex_index += 80
+
+                tx0 = float(tex_index % 16) / 16.0
+                ty0 = float(tex_index / 16) / 16.0
                 tx1 = tx0 + 1.0 / 16.0
                 ty1 = ty0 + 1.0 / 16.0
-                tex_coords += [tx0, ty0, tx0, ty1, tx1, ty1, tx1, ty0]
+
+                new_tex_coords = [tx0, ty0, tx0, ty1, tx1, ty1, tx1, ty0]
+                tex_coords += new_tex_coords[tex_rot*2:] + new_tex_coords[:tex_rot*2]
 
         self._vertex_list = pyglet.graphics.vertex_list(len(vertices)/2, 'v2f', 't2f')
         self._vertex_list.vertices = vertices
@@ -248,20 +292,15 @@ class Map(object):
 
                     # calculate resolution
                     if projected_edge[1] == 0x1:
-                        obj.pos.y += projected_edge[0]
-                        # obj.pos0.y = obj.pos.y
+                        obj.pos.y += projected_edge[0]                        
                         obj.ground()
                     elif projected_edge[1] == 0x2:
-                        obj.pos.x += projected_edge[0]
-                        # obj.pos0.x = obj.pos.x
-                        # obj.acc.x = 0
+                        obj.pos.x += projected_edge[0]                        
                     elif projected_edge[1] == 0x4:
                         obj.pos.y -= projected_edge[0]
-                        # obj.pos0.y = obj.pos.y                
                     elif projected_edge[1] == 0x8:
                         obj.pos.x -= projected_edge[0]
-                        # obj.pos0.x = obj.pos.x                                
-                        # obj.acc.x = 0
+                        
 
         return collisions
         

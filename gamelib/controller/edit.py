@@ -22,8 +22,8 @@ class Game(object):
         try:
             self.map = map.Map.load(0)
         except:
-            self.map = map.Map(48, 32)
-            
+            self.map = map.Map(40, 25)
+
         self.mode = map.T_BLOCK_WOOD
         self.init_gl()
 
