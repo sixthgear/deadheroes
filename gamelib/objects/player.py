@@ -17,8 +17,8 @@ class Player(obj.GameObject):
     def __init__(self, x=32, y=32):
         super(Player, self).__init__(x, y)
         self.acc.y =  -2000
-        map.sprites[0].anchor_x = 7
-        self.sprite = sprite.Sprite(map.sprites[0])
+        obj.sprites[0].anchor_x = 7
+        self.sprite = sprite.Sprite(obj.sprites[0])
         
         self.air = FALLING
         self.jump_distance = 0

@@ -1,5 +1,6 @@
 from collections import namedtuple, OrderedDict, defaultdict
 from pyglet.gl import *
+from pyglet import image
 from gamelib import vector
 
 Point = namedtuple('Point', 'x y')
@@ -7,6 +8,11 @@ Point = namedtuple('Point', 'x y')
 COL_AABB = 0x00
 COL_CIRCLE = 0x01
 
+# get an image sequence for all of the sprites
+sprites = image.ImageGrid(pyglet.resource.texture('sprites.png'), 8, 16).get_texture_sequence()
+for s in sprites:
+    pass
+    
 class GameObject(object):
 
     tex = None

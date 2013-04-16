@@ -4,7 +4,6 @@ import json
 from gamelib import collide
 from gamelib import vector
 from pyglet.gl import *
-from pyglet import image
 
 # pixel size of a tile
 MAP_TILESIZE = 32          
@@ -29,7 +28,7 @@ R_270               = 0x01
 
 # flip contants
 FLIP_NONE           = 0x00
-FLIP_HORIZ          = 0x01
+FLIP_HORZ           = 0x01
 FLIP_VERT           = 0x02
 FLIP_BOTH           = 0x03
 
@@ -64,11 +63,6 @@ TEX_MUT = {
     E_NONE:             (80, R_0),
 }
 
-sprites = image.ImageGrid(pyglet.resource.texture('sprites.png'), 8, 16).get_texture_sequence()
-for s in sprites:
-    pass
-    # s.anchor_x = 16
-
 class Map(object):
     """
     The Map class holds a single multi-level dungeon.
@@ -85,17 +79,13 @@ class Map(object):
         self.height = height    # height of this map in tiles
         self.deaths = 0         # the number of players to meet their demise here
 
-        # grid data
-        self.grid = []
-        for y in range(self.height):
-            for x in range(self.width):
-                self.grid.append(Tile(x, y, type=T_EMPTY))
-
-        for y in range(self.height):
-            for x in range(self.width):
-                tile = self.get(x, y)
-                if self.is_bound(tile, E_ALL):
-                    self.change(x, y, T_BLOCK_CONCRETE, force=True)
+        # create grid
+        self.grid = [Tile(t%width, t/width, type=T_EMPTY) for t in range(width*height) ]
+        
+        # create edges
+        for tile in self.grid:
+            if self.is_bound(tile, E_ALL):
+                self.change(tile.x, tile.y, T_BLOCK_CONCRETE, force=True)
 
         # object data
         # these are all the game objects the maps needs to render over top of the tiles
@@ -109,29 +99,6 @@ class Map(object):
         self._vertex_list = pyglet.graphics.vertex_list(0, 'v2f', 't2f')
         self._vertex_list_dirty = True    
 
-    # tile lookup convience methods        
-    def get(self, x, y): 
-        return self.grid[y*self.width + x]
-    def left(self, tile):
-        return self.get(tile.x-1, tile.y)
-    def right(self, tile):
-        return self.get(tile.x+1, tile.y)
-    def up(self, tile):
-        return self.get(tile.x, tile.y+1)
-    def down(self, tile):
-        return self.get(tile.x, tile.y-1)
-    
-    def is_bound(self, tile, edge):        
-        if edge & E_LEFT and tile.x == 0:
-            return True
-        if edge & E_BOTTOM and tile.y == 0:
-            return True            
-        if edge & E_RIGHT and tile.x == self.width - 1:
-            return True
-        if edge & E_TOP and tile.y == self.height - 1:
-            return True            
-        return False
-
     @classmethod
     def load(cls, map_id):
         """
@@ -143,8 +110,7 @@ class Map(object):
             for y in range(m.height):
                 for x in range(m.width):
                     i = y * m.width + x
-                    m.grid[i] = Tile(x, y, data['grid'][i], data['edges'][i])                    
-
+                    m.grid[i] = Tile(x, y, data['grid'][i], data['edges'][i])
         return m
 
     def save(self):
@@ -163,6 +129,35 @@ class Map(object):
     def update(self, dt2):
         for o in self.objects:
             o.update(dt2)
+
+    # tile lookup convinience methods        
+    def get(self, x, y): 
+        return self.grid[y*self.width + x]
+    def offset(self, tile, x=0, y=0):
+        return self.get(tile.x+x, tile.y+y)
+    def left(self, tile):
+        return self.get(tile.x-1, tile.y)
+    def right(self, tile):
+        return self.get(tile.x+1, tile.y)
+    def up(self, tile):
+        return self.get(tile.x, tile.y+1)
+    def down(self, tile):
+        return self.get(tile.x, tile.y-1)
+
+    def is_bound(self, tile, edge=E_ALL):
+        """
+        Returns true if this tile is on the edge of the map. 
+        May be passed an edge flag to check one or more edges specifically.
+        """
+        if edge & E_LEFT and tile.x == 0:
+            return True
+        if edge & E_BOTTOM and tile.y == 0:
+            return True            
+        if edge & E_RIGHT and tile.x == self.width - 1:
+            return True
+        if edge & E_TOP and tile.y == self.height - 1:
+            return True            
+        return False
 
     def change(self, x, y, type, force=False):
         """
@@ -198,19 +193,77 @@ class Map(object):
             tile.type = type
             self._vertex_list_dirty = True
 
-
-    def highlight(self, x, y):
+    def collide(self, obj):
         """
-        Highlight a given tile location.
+        Collide one object against the map.
         """
-        tile = self.get(x, y)
 
-        # can't highlight boundaries
-        if self.is_bound(tile, E_ALL):
-            self._highlight.enabled = False
-        else:
-            self._highlight.vertices = tile.quad
-            self._highlight.enabled = True
+        # assume this object is falling unless we resolve a ground collision
+        obj.fall()
+
+        # store a list of intersecting tiles to return
+        collisions = []
+
+        # determine a range of x,y tile indices to iterate through. For objects smaller than the size of
+        # the grid, this will be at most 4 cells.        
+        x0, y0 = int(obj.pos.x) / MAP_TILESIZE, int(obj.pos.y) / MAP_TILESIZE
+        x1, y1 = int(obj.pos.x + obj.width) / MAP_TILESIZE + 1, int(obj.pos.y + obj.height) / MAP_TILESIZE + 1
+
+        for y in range(y0, y1):
+            for x in range(x0,x1):
+
+                tile = self.get(x, y)
+                tpos = vector.Vec2d(x*MAP_TILESIZE, y*MAP_TILESIZE)
+            
+                # do nothing for empty tiles
+                if tile.type == T_EMPTY:
+                    continue
+
+                # check for a broad AABB intersection
+                elif collide.AABB_to_AABB(tpos, MAP_TILESIZE, MAP_TILESIZE, obj.pos, obj.width, obj.height):
+
+                    # check for individual edge intersections (only if this tile has that edge flag set)
+                    top = tile.edges & E_TOP and collide.AABB_to_AABB(
+                        vector.Vec2d(tpos.x, tpos.y + MAP_TILESIZE), MAP_TILESIZE, 0, obj.pos, obj.width, obj.height)
+                    bottom = tile.edges & E_BOTTOM and collide.AABB_to_AABB(
+                        vector.Vec2d(tpos.x, tpos.y), MAP_TILESIZE, 0, obj.pos, obj.width, obj.height)
+                    left = tile.edges & E_LEFT and collide.AABB_to_AABB(
+                        vector.Vec2d(tpos.x, tpos.y), 0, MAP_TILESIZE, obj.pos, obj.width, obj.height)
+                    right = tile.edges & E_RIGHT and collide.AABB_to_AABB(
+                        vector.Vec2d(tpos.x+MAP_TILESIZE, tpos.y), 0, MAP_TILESIZE, obj.pos, obj.width, obj.height)
+
+                    # keep track of the shortest projected edge for this tile.
+                    # the resolution vector will typically be along the shortest axis of penetration.
+                    projected_edge = (9999, 0x0)
+
+                    # if we have an edge intersection and the project edge is smaller than what we've yet seen
+                    if top and (tpos.y + MAP_TILESIZE) - obj.pos.y < projected_edge[0]:
+                        projected_edge = ((tpos.y + MAP_TILESIZE) - obj.pos.y, E_TOP)
+                    if right and (tpos.x + MAP_TILESIZE) - obj.pos.x < projected_edge[0]:
+                        projected_edge =((tpos.x + MAP_TILESIZE) - obj.pos.x, E_RIGHT)
+                    if bottom and (obj.pos.y + obj.height) - tpos.y < projected_edge[0]:
+                        projected_edge = ((obj.pos.y + obj.height) - tpos.y, E_BOTTOM)
+                    if left and (obj.pos.x + obj.width) - tpos.x < projected_edge[0]:
+                        projected_edge = ((obj.pos.x + obj.width) - tpos.x, E_LEFT)
+                    
+                    # add this tile to collisions list since we performed a projection out of it
+                    if projected_edge[1] != 0x0:
+                        collisions.append(tile)
+
+                    # calculate resolution, if we project out the top, inform the object it's now on the ground
+                    if projected_edge[1] == E_TOP:
+                        obj.pos.y += projected_edge[0]
+                        obj.ground()
+                    elif projected_edge[1] == E_RIGHT:
+                        obj.pos.x += projected_edge[0]                        
+                    elif projected_edge[1] == E_BOTTOM:
+                        obj.pos.y -= projected_edge[0]
+                    elif projected_edge[1] == E_LEFT:
+                        obj.pos.x -= projected_edge[0]
+
+        # all done
+        return collisions
+        
 
     def draw(self):
         """
@@ -247,107 +300,50 @@ class Map(object):
         vertices = []
         tex_coords = []
 
-        for y in range(self.height):
-            for x in range(self.width):
-                tile = self.get(x, y)
+        for tile in self.grid:
 
-                if tile.type == T_EMPTY: 
-                    # empty tile, so don't bother creating vertices
-                    continue 
+            # don't bother creating vertices for empty tiles
+            if tile.type == T_EMPTY:                 
+                continue
 
-                # add vetices and tex coords for this tile
+            # add vertices and tex coords for this tile
+            vertices += tile.quad
+            tex_coords += tile.tex(tile.type + TEX_MUT[tile.edges][0], TEX_MUT[tile.edges][1])
+            
+            # add corner decals on stacked tiles
+            if not self.is_bound(tile, E_TOP | E_LEFT) and self.offset(tile, -1, 1).is_empty and self.left(tile).has_edge(E_TOP) and self.up(tile).has_edge(E_LEFT):
                 vertices += tile.quad
-                tex_coords += tile.tex(tile.type + TEX_MUT[tile.edges][0], TEX_MUT[tile.edges][1])
-                
-                # add corner decals on stacked tiles
-                if not self.is_bound(tile, E_TOP | E_LEFT) and self.get(x-1, y+1).type == T_EMPTY and self.left(tile).edges & E_TOP and self.up(tile).edges & E_LEFT:
-                    vertices += tile.quad
-                    tex_coords += tile.tex(tile.type + 96, R_0)
+                tex_coords += tile.tex(tile.type + 96, R_0)
 
-                if not self.is_bound(tile, E_TOP | E_RIGHT) and self.get(x+1, y+1).type == T_EMPTY and self.right(tile).edges & E_TOP and self.up(tile).edges & E_RIGHT:
-                    vertices += tile.quad
-                    tex_coords += tile.tex(tile.type + 96, R_90)
+            if not self.is_bound(tile, E_TOP | E_RIGHT) and self.offset(tile, 1, 1).is_empty and self.right(tile).has_edge(E_TOP) and self.up(tile).has_edge(E_RIGHT):
+                vertices += tile.quad
+                tex_coords += tile.tex(tile.type + 96, R_90)
 
-                if not self.is_bound(tile, E_BOTTOM | E_RIGHT) and self.get(x+1, y-1).type == T_EMPTY and self.right(tile).edges & E_BOTTOM and self.down(tile).edges & E_RIGHT:
-                    vertices += tile.quad
-                    tex_coords += tile.tex(tile.type + 96, R_180)                    
+            if not self.is_bound(tile, E_BOTTOM | E_RIGHT) and self.offset(tile, 1, -1).is_empty and self.right(tile).has_edge(E_BOTTOM) and self.down(tile).has_edge(E_RIGHT):
+                vertices += tile.quad
+                tex_coords += tile.tex(tile.type + 96, R_180)                    
 
-                if not self.is_bound(tile, E_BOTTOM | E_LEFT) and self.get(x-1, y-1).type == T_EMPTY and self.left(tile).edges & E_BOTTOM and self.down(tile).edges & E_LEFT:
-                    vertices += tile.quad
-                    tex_coords += tile.tex(tile.type + 96, R_270)
+            if not self.is_bound(tile, E_BOTTOM | E_LEFT) and self.offset(tile, -1, -1).is_empty and self.left(tile).has_edge(E_BOTTOM) and self.down(tile).has_edge(E_LEFT):
+                vertices += tile.quad
+                tex_coords += tile.tex(tile.type + 96, R_270)
                     
         self._vertex_list = pyglet.graphics.vertex_list(len(vertices)/2, 'v2f', 't2f')
         self._vertex_list.vertices = vertices
         self._vertex_list.tex_coords = tex_coords
 
-
-    def collide(self, obj):
+    def highlight(self, x, y):
         """
-        Collide one object against the map.
+        Highlight a given tile location.
         """
+        tile = self.get(x, y)
 
-        # assume this object is falling unless we resolve a ground collision
-        obj.fall()
+        # can't highlight boundaries
+        if self.is_bound(tile, E_ALL):
+            self._highlight.enabled = False
+        else:
+            self._highlight.vertices = tile.quad
+            self._highlight.enabled = True
 
-        # store a list of intersecting tiles to return
-        collisions = []
-
-        # determine a range of x,y tile indices to iterate through. For objects smaller than the size of
-        # the grid, this will be at most 4 cells.        
-        x0, y0 = int(obj.pos.x) / MAP_TILESIZE, int(obj.pos.y) / MAP_TILESIZE
-        x1, y1 = int(obj.pos.x + obj.width) / MAP_TILESIZE + 1, int(obj.pos.y + obj.height) / MAP_TILESIZE + 1
-
-        for y in range(y0, y1):
-            for x in range(x0,x1):
-
-                tile = self.get(x, y)
-                tpos = vector.Vec2d(x*MAP_TILESIZE,y*MAP_TILESIZE)
-            
-                if tile.type == T_EMPTY:
-                    continue
-
-                elif collide.AABB_to_AABB(tpos, MAP_TILESIZE, MAP_TILESIZE, obj.pos, obj.width, obj.height):
-
-                    # check for edge intersections
-                    top = tile.edges & E_TOP and collide.AABB_to_AABB(
-                        vector.Vec2d(tpos.x, tpos.y + MAP_TILESIZE), MAP_TILESIZE, 0, obj.pos, obj.width, obj.height)
-                    bottom = tile.edges & E_BOTTOM and collide.AABB_to_AABB(
-                        vector.Vec2d(tpos.x, tpos.y), MAP_TILESIZE, 0, obj.pos, obj.width, obj.height)
-                    left = tile.edges & E_LEFT and collide.AABB_to_AABB(
-                        vector.Vec2d(tpos.x, tpos.y), 0, MAP_TILESIZE, obj.pos, obj.width, obj.height)
-                    right = tile.edges & E_RIGHT and collide.AABB_to_AABB(
-                        vector.Vec2d(tpos.x+MAP_TILESIZE, tpos.y), 0, MAP_TILESIZE, obj.pos, obj.width, obj.height)
-
-                    # keep track of the shortest projected edge for this tile.
-                    # the resolution vector will typically be along the shortest axis of penetration.
-                    projected_edge = (9999, 0x0)
-
-                    # if we have an edge intersection and the project edge is smaller than what we've yet seen
-                    if top and (tpos.y + MAP_TILESIZE) - obj.pos.y < projected_edge[0]:
-                        projected_edge = ((tpos.y + MAP_TILESIZE) - obj.pos.y, E_TOP)
-                    if right and (tpos.x + MAP_TILESIZE) - obj.pos.x < projected_edge[0]:
-                        projected_edge =((tpos.x + MAP_TILESIZE) - obj.pos.x, E_RIGHT)
-                    if bottom and (obj.pos.y + obj.height) - tpos.y < projected_edge[0]:
-                        projected_edge = ((obj.pos.y + obj.height) - tpos.y, E_BOTTOM)
-                    if left and (obj.pos.x + obj.width) - tpos.x < projected_edge[0]:
-                        projected_edge = ((obj.pos.x + obj.width) - tpos.x, E_LEFT)
-                
-                    if projected_edge[1] != 0x0:
-                        collisions.append(tile)
-
-                    # calculate resolution
-                    if projected_edge[1] == E_TOP:
-                        obj.pos.y += projected_edge[0]                        
-                        obj.ground()
-                    elif projected_edge[1] == E_RIGHT:
-                        obj.pos.x += projected_edge[0]                        
-                    elif projected_edge[1] == E_BOTTOM:
-                        obj.pos.y -= projected_edge[0]
-                    elif projected_edge[1] == E_LEFT:
-                        obj.pos.x -= projected_edge[0]
-                        
-        return collisions
-        
 class Tile(object):
     """
     A Tile is any given square of the map.
@@ -359,13 +355,20 @@ class Tile(object):
         self.x = x
         self.y = y
 
-    def tex(self, index, rot, flip=0):
+    def tex(self, index, rot=0, flip=0):
         tx0 = float(index % 16) / 16.0
         ty0 = float(index / 16) / 16.0
         tx1 = tx0 + 1.0 / 16.0
         ty1 = ty0 + 1.0 / 16.0
         tex_coords = [tx0, ty0, tx0, ty1, tx1, ty1, tx1, ty0]
         return tex_coords[rot*2:] + tex_coords[:rot*2]
+
+    @property
+    def is_empty(self):
+       return self.type == T_EMPTY
+
+    def has_edge(self, edge):
+        return self.edges & edge
 
     @property
     def quad(self):        
