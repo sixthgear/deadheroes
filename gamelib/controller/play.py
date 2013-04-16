@@ -37,12 +37,16 @@ class Game(object):
         self.init_gl()
 
 
-    def init_state(self, replay):
+    def init_state(self, replay=0):
 
         self.tick = 0
         self.player = player.Player(32, 32)
+
+        for t in self.map.grid:
+            t.objects.clear()
+
         self.map.objects = []
-        [t.objects.clear() for t in self.map.grid]
+        
         self.mode = replay
         if replay == 0:
             self.replay = array.array('B')
@@ -59,6 +63,7 @@ class Game(object):
                 self.map.hash_object(z)
 
         self.map.hash_object(self.player)
+
 
     def init_gl(self):
         """
@@ -147,7 +152,8 @@ class Game(object):
         for c in self.map.collide_objects(self.player):
             # pass
             # print 'player vs object', c
-            self.init_state(0)
+            pyglet.clock.schedule_once(self.init_state, 0.0)
+            return
 
         
 

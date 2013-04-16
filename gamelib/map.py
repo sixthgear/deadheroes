@@ -224,13 +224,13 @@ class Map(object):
 
         collisions = set()
 
-        for tile in self.tiles_from_object(obj):
+        for tile in obj.tiles: #self.tiles_from_object(obj):
             for o in tile.objects:
                 if o == obj:
                     continue
                 if collide.AABB_to_AABB(o.pos, o.width, o.height, obj.pos, obj.width, obj.height):
                     collisions.add(o)
-                    
+
 
         return collisions
 
