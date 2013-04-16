@@ -117,7 +117,7 @@ class Map(object):
         """
         Writes a map to the server in JSON.
         """
-        with open ('mapdata.json', 'w') as f: 
+        with open ('mapdata.json', 'w') as f:
             jsondata = json.dumps({
                 'width': self.width,
                 'height': self.height,
@@ -197,10 +197,7 @@ class Map(object):
         """
         Collide one object against the map.
         """
-
-        # assume this object is falling unless we resolve a ground collision
-        obj.fall()
-
+        
         # store a list of intersecting tiles to return
         collisions = []
 
@@ -208,6 +205,9 @@ class Map(object):
         # the grid, this will be at most 4 cells.        
         x0, y0 = int(obj.pos.x) / MAP_TILESIZE, int(obj.pos.y) / MAP_TILESIZE
         x1, y1 = int(obj.pos.x + obj.width) / MAP_TILESIZE + 1, int(obj.pos.y + obj.height) / MAP_TILESIZE + 1
+
+        # assume this object is falling unless we resolve a ground collision
+        on_ground = False
 
         for y in range(y0, y1):
             for x in range(x0,x1):
@@ -253,7 +253,7 @@ class Map(object):
                     # calculate resolution, if we project out the top, inform the object it's now on the ground
                     if projected_edge[1] == E_TOP:
                         obj.pos.y += projected_edge[0]
-                        obj.ground()
+                        on_ground = True            
                     elif projected_edge[1] == E_RIGHT:
                         obj.pos.x += projected_edge[0]                        
                     elif projected_edge[1] == E_BOTTOM:
@@ -261,7 +261,12 @@ class Map(object):
                     elif projected_edge[1] == E_LEFT:
                         obj.pos.x -= projected_edge[0]
 
-        # all done
+        # all done        
+        if on_ground:
+            obj.ground()
+        else:            
+            obj.fall()
+
         return collisions
         
 

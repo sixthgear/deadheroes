@@ -19,6 +19,7 @@ class Game(object):
         self.keys = key.KeyStateHandler()        
         self.player = player.Player()
         self.tick = 0
+    
         # use dungeon if passed into constructor, otherwise create a blank one
         if dungeon:
             self.map = dungeon
@@ -41,16 +42,21 @@ class Game(object):
         Sample input, integrate game physics, and resolve collisions.
         """
         # sample input
-        if self.keys[key.LEFT]:
+        if self.keys[key.LEFT]:            
             self.player.acc.x = -2000
+            if self.player.air != player.ON_GROUND:
+                self.player.acc.x *= 0.75
         elif self.keys[key.RIGHT]:
             self.player.acc.x = 2000
+            if self.player.air != player.ON_GROUND:
+                self.player.acc.x *= 0.75
         else:
             self.player.acc.x = 0
+
         if self.keys[key.SPACE]:
             self.player.jump()
-        elif self.player.air == player.JUMPING:
-            self.player.air = player.FALLING
+        else:
+            self.player.jump_release()
 
         # record input for this frame
 
