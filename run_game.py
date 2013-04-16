@@ -3,7 +3,7 @@ import sys
 sys.path.insert(0,'lib')
 
 import pyglet
-pyglet.options['debug_gl'] = True
+pyglet.options['debug_gl'] = False
 pyglet.resource.path = ['data']
 pyglet.resource.reindex()
 

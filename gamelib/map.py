@@ -1,45 +1,49 @@
 import random
 import pyglet
 import json
+import requests
+
 from gamelib import collide
 from gamelib import vector
+from gamelib.objects import obj
+
 from pyglet.gl import *
 
 # pixel size of a tile
 MAP_TILESIZE = 32          
 
 # edge flag constants
-E_NONE              = 0x00
-E_TOP               = 0x01
-E_RIGHT             = 0x02
-E_BOTTOM            = 0x04
-E_LEFT              = 0x08
-E_NOT_TOP           = ~E_TOP & 0xF
-E_NOT_RIGHT         = ~E_RIGHT & 0xF
-E_NOT_BOTTOM        = ~E_BOTTOM & 0xF
-E_NOT_LEFT          = ~E_LEFT & 0xF
-E_ALL               = 0x0F
+E_NONE                  = 0x00
+E_TOP                   = 0x01
+E_RIGHT                 = 0x02
+E_BOTTOM                = 0x04
+E_LEFT                  = 0x08
+E_NOT_TOP               = ~E_TOP & 0xF
+E_NOT_RIGHT             = ~E_RIGHT & 0xF
+E_NOT_BOTTOM            = ~E_BOTTOM & 0xF
+E_NOT_LEFT              = ~E_LEFT & 0xF
+E_ALL                   = 0x0F
 
 # rotation constants
-R_0                 = 0x00
-R_90                = 0x03
-R_180               = 0x02
-R_270               = 0x01
+R_0                     = 0x00
+R_90                    = 0x03
+R_180                   = 0x02
+R_270                   = 0x01
 
 # flip contants
-FLIP_NONE           = 0x00
-FLIP_HORZ           = 0x01
-FLIP_VERT           = 0x02
-FLIP_BOTH           = 0x03
+FLIP_NONE               = 0x00
+FLIP_HORZ               = 0x01
+FLIP_VERT               = 0x02
+FLIP_BOTH               = 0x03
 
 # tile type constants
-T_EMPTY             = 0x00
-T_BLOCK_WOOD        = 0x01
-T_BLOCK_CONCRETE    = 0x02
-T_BLOCK_STEEL       = 0x03
-T_COLUMN            = 0x04
-T_FLOOR             = 0x05
-T_LADDER            = 0x06
+T_EMPTY                 = 0x00
+T_BLOCK_WOOD            = 0x01
+T_BLOCK_CONCRETE        = 0x02
+T_BLOCK_STEEL           = 0x03
+T_COLUMN                = 0x04
+T_FLOOR                 = 0x05
+T_LADDER                = 0x06
 
 # texture mutators for different edge congifurations.
 # the first element of the tuple represents the texture index offset to add to the base index
@@ -124,11 +128,7 @@ class Map(object):
                 'grid': [t.type for t in self.grid],
                 'edges': [t.edges for t in self.grid],
             })
-            f.write(jsondata)
-            
-    def update(self, dt2):
-        for o in self.objects:
-            o.update(dt2)
+            f.write(jsondata)        
 
     # tile lookup convinience methods        
     def get(self, x, y): 
@@ -193,79 +193,113 @@ class Map(object):
             tile.type = type
             self._vertex_list_dirty = True
 
-    def collide(self, obj):
-        """
-        Collide one object against the map.
-        """
-        
-        # store a list of intersecting tiles to return
-        collisions = []
+    
+    def raycast(self, origin, target):
+        pass
 
+
+    def tiles_from_object(self, obj):
         # determine a range of x,y tile indices to iterate through. For objects smaller than the size of
         # the grid, this will be at most 4 cells.        
         x0, y0 = int(obj.pos.x) / MAP_TILESIZE, int(obj.pos.y) / MAP_TILESIZE
         x1, y1 = int(obj.pos.x + obj.width) / MAP_TILESIZE + 1, int(obj.pos.y + obj.height) / MAP_TILESIZE + 1
+        for y in range(y0, y1):
+            for x in range(x0,x1):
+                yield self.get(x, y)                
+
+    def hash_object(self, o):
+        
+        new_tiles = set(self.tiles_from_object(o))
+
+        for tile in o.tiles - new_tiles:
+            tile.objects.remove(o)
+
+        for tile in new_tiles - o.tiles:
+            tile.objects.add(o)
+
+        o.tiles = new_tiles
+
+
+    def collide_objects(self, obj):
+
+        collisions = set()
+
+        for tile in self.tiles_from_object(obj):
+            for o in tile.objects:
+                if o == obj:
+                    continue
+                if collide.AABB_to_AABB(o.pos, o.width, o.height, obj.pos, obj.width, obj.height):
+                    collisions.add(o)
+                    
+
+        return collisions
+
+    def collide_geometry(self, obj):
+        """
+        Collide one object against the map.
+        """
 
         # assume this object is falling unless we resolve a ground collision
         on_ground = False
 
-        for y in range(y0, y1):
-            for x in range(x0,x1):
+        # store a list of intersecting tiles to return
+        collisions = []
+        
+        for tile in self.tiles_from_object(obj):
 
-                tile = self.get(x, y)
-                tpos = vector.Vec2d(x*MAP_TILESIZE, y*MAP_TILESIZE)
-            
-                # do nothing for empty tiles
-                if tile.type == T_EMPTY:
-                    continue
+            tpos = vector.Vec2d(tile.x*MAP_TILESIZE, tile.y*MAP_TILESIZE)
+        
+            # do nothing for empty tiles
+            if tile.type == T_EMPTY:
+                continue
 
-                # check for a broad AABB intersection
-                elif collide.AABB_to_AABB(tpos, MAP_TILESIZE, MAP_TILESIZE, obj.pos, obj.width, obj.height):
+            # check for a broad AABB intersection
+            elif collide.AABB_to_AABB(tpos, MAP_TILESIZE, MAP_TILESIZE, obj.pos, obj.width, obj.height):
 
-                    # check for individual edge intersections (only if this tile has that edge flag set)
-                    top = tile.edges & E_TOP and collide.AABB_to_AABB(
-                        vector.Vec2d(tpos.x, tpos.y + MAP_TILESIZE), MAP_TILESIZE, 0, obj.pos, obj.width, obj.height)
-                    bottom = tile.edges & E_BOTTOM and collide.AABB_to_AABB(
-                        vector.Vec2d(tpos.x, tpos.y), MAP_TILESIZE, 0, obj.pos, obj.width, obj.height)
-                    left = tile.edges & E_LEFT and collide.AABB_to_AABB(
-                        vector.Vec2d(tpos.x, tpos.y), 0, MAP_TILESIZE, obj.pos, obj.width, obj.height)
-                    right = tile.edges & E_RIGHT and collide.AABB_to_AABB(
-                        vector.Vec2d(tpos.x+MAP_TILESIZE, tpos.y), 0, MAP_TILESIZE, obj.pos, obj.width, obj.height)
+                # check for individual edge intersections (only if this tile has that edge flag set)
+                top = tile.edges & E_TOP and collide.AABB_to_AABB(
+                    vector.Vec2d(tpos.x, tpos.y + MAP_TILESIZE), MAP_TILESIZE, 0, obj.pos, obj.width, obj.height)
+                bottom = tile.edges & E_BOTTOM and collide.AABB_to_AABB(
+                    vector.Vec2d(tpos.x, tpos.y), MAP_TILESIZE, 0, obj.pos, obj.width, obj.height)
+                left = tile.edges & E_LEFT and collide.AABB_to_AABB(
+                    vector.Vec2d(tpos.x, tpos.y), 0, MAP_TILESIZE, obj.pos, obj.width, obj.height)
+                right = tile.edges & E_RIGHT and collide.AABB_to_AABB(
+                    vector.Vec2d(tpos.x+MAP_TILESIZE, tpos.y), 0, MAP_TILESIZE, obj.pos, obj.width, obj.height)
 
-                    # keep track of the shortest projected edge for this tile.
-                    # the resolution vector will typically be along the shortest axis of penetration.
-                    projected_edge = (9999, 0x0)
+                # keep track of the shortest projected edge for this tile.
+                # the resolution vector will typically be along the shortest axis of penetration.
+                projected_edge = (9999, 0x0)
 
-                    # if we have an edge intersection and the project edge is smaller than what we've yet seen
-                    if top and (tpos.y + MAP_TILESIZE) - obj.pos.y < projected_edge[0]:
-                        projected_edge = ((tpos.y + MAP_TILESIZE) - obj.pos.y, E_TOP)
-                    if right and (tpos.x + MAP_TILESIZE) - obj.pos.x < projected_edge[0]:
-                        projected_edge =((tpos.x + MAP_TILESIZE) - obj.pos.x, E_RIGHT)
-                    if bottom and (obj.pos.y + obj.height) - tpos.y < projected_edge[0]:
-                        projected_edge = ((obj.pos.y + obj.height) - tpos.y, E_BOTTOM)
-                    if left and (obj.pos.x + obj.width) - tpos.x < projected_edge[0]:
-                        projected_edge = ((obj.pos.x + obj.width) - tpos.x, E_LEFT)
-                    
-                    # add this tile to collisions list since we performed a projection out of it
-                    if projected_edge[1] != 0x0:
-                        collisions.append(tile)
+                # if we have an edge intersection and the project edge is smaller than what we've yet seen
+                if top and (tpos.y + MAP_TILESIZE) - obj.pos.y < projected_edge[0]:
+                    projected_edge = ((tpos.y + MAP_TILESIZE) - obj.pos.y, E_TOP)
+                if right and (tpos.x + MAP_TILESIZE) - obj.pos.x < projected_edge[0]:
+                    projected_edge =((tpos.x + MAP_TILESIZE) - obj.pos.x, E_RIGHT)
+                if bottom and (obj.pos.y + obj.height) - tpos.y < projected_edge[0]:
+                    projected_edge = ((obj.pos.y + obj.height) - tpos.y, E_BOTTOM)
+                if left and (obj.pos.x + obj.width) - tpos.x < projected_edge[0]:
+                    projected_edge = ((obj.pos.x + obj.width) - tpos.x, E_LEFT)
+                
+                # add this tile to collisions list since we performed a projection out of it
+                if projected_edge[1] != 0x0:
+                    collisions.append(tile)
 
-                    # calculate resolution, if we project out the top, inform the object it's now on the ground
-                    if projected_edge[1] == E_TOP:
-                        obj.pos.y += projected_edge[0]
-                        on_ground = True            
-                    elif projected_edge[1] == E_RIGHT:
-                        obj.pos.x += projected_edge[0]                        
-                    elif projected_edge[1] == E_BOTTOM:
-                        obj.pos.y -= projected_edge[0]
-                    elif projected_edge[1] == E_LEFT:
-                        obj.pos.x -= projected_edge[0]
+                # calculate resolution, if we project out the top, inform the object it's now on the ground
+                if projected_edge[1] == E_TOP:
+                    obj.pos.y += projected_edge[0]
+                    on_ground = True            
+                elif projected_edge[1] == E_RIGHT:
+                    obj.pos.x += projected_edge[0]                        
+                elif projected_edge[1] == E_BOTTOM:
+                    obj.pos.y -= projected_edge[0]
+                elif projected_edge[1] == E_LEFT:
+                    obj.pos.x -= projected_edge[0]
 
         # all done        
         if on_ground:
-            obj.ground()
-        else:            
-            obj.fall()
+            obj.ground()            
+        else:
+            obj.fall()            
 
         return collisions
         
@@ -341,9 +375,8 @@ class Map(object):
         Highlight a given tile location.
         """
         tile = self.get(x, y)
-
         # can't highlight boundaries
-        if self.is_bound(tile, E_ALL):
+        if self.is_bound(tile):
             self._highlight.enabled = False
         else:
             self._highlight.vertices = tile.quad
@@ -354,11 +387,13 @@ class Tile(object):
     A Tile is any given square of the map.
     """
     def __init__(self, x, y, type, edges=0):
-        self.type = type
-        self.objects = [] # references to objects contained here
-        self.edges = edges
         self.x = x
         self.y = y
+        self.type = type        
+        self.edges = edges
+
+        # set of references to objects contained here
+        self.objects = set()
 
     def tex(self, index, rot=0, flip=0):
         tx0 = float(index % 16) / 16.0
