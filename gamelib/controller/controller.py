@@ -46,7 +46,11 @@ class Controller(pyglet.window.Window):
         self.switch('edit', edit.Game(window=self))
 
     def play(self, dt=0.0):
-        if self.states.has_key('edit'):
+
+        if self.states.has_key('play'):
+            del self.states['play']
+
+        if self.states.has_key('edit'):            
             self.switch('play', play.Game(window=self, dungeon=self.states['edit'].map))
         else:
             self.switch('play', play.Game(window=self))
