@@ -26,6 +26,7 @@ class Game(object):
         
         self.tick = 0
         self.replay = array.array('B')
+        self.replay_archive = []
 
         # use dungeon if passed into constructor, otherwise create a blank one
         if dungeon:
@@ -39,20 +40,25 @@ class Game(object):
 
     def init_state(self, replay=0):
 
+        random.seed(0)
         self.tick = 0
-        self.player = player.Player(32, 32)
+        self.mode = replay
 
+        if replay == 0:
+            self.player = player.Player(32, 32)            
+            self.replay = array.array('B')
+            self.ghosts = []
+        else:
+            self.replay_archive.sort(key=lambda r: len(r), reverse=True)
+            self.player = player.Player(32, 32)
+            self.ghosts = [player.Player(32, 32) for r in self.replay_archive[1:]]
+            self.replay = self.replay_archive[0]
+        
         for t in self.map.grid:
             t.objects.clear()
 
         self.map.objects = []
-        
-        self.mode = replay
-        if replay == 0:
-            self.replay = array.array('B')
-
-        random.seed(0)
-
+    
         for i in range(20):
             p = random.randrange(40), random.randrange(25)            
             tile = self.map.get(*p)
@@ -80,42 +86,53 @@ class Game(object):
         """
 
         # sample input
+        for r, p in enumerate([self.player] + self.ghosts):
 
-        key_int = 0
-        if self.mode == 0:
-            if self.keys[key.LEFT]:
-                key_int |= KEY_LEFT
-            if self.keys[key.RIGHT]:
-                key_int |= KEY_RIGHT
-            if self.keys[key.SPACE]:
-                key_int |= KEY_JUMP
-            self.replay.append(key_int)
-        else:
-            key_int = self.replay[self.tick]
-            if self.tick == len(self.replay)-1:
-                print 'Replay finished.'
-                self.mode = 0
+            key_int = 0
 
-        if key_int & KEY_LEFT:
-            self.player.acc.x = -2000
-            if self.player.air != player.ON_GROUND:
-                self.player.acc.x *= 0.75
+            if self.mode == 0:
+                if self.keys[key.LEFT]:
+                    key_int |= KEY_LEFT
+                if self.keys[key.RIGHT]:
+                    key_int |= KEY_RIGHT
+                if self.keys[key.SPACE]:
+                    key_int |= KEY_JUMP
+                self.replay.append(key_int)
+            else:
 
-        elif key_int & KEY_RIGHT:            
-            self.player.acc.x = 2000
-            if self.player.air != player.ON_GROUND:
-                self.player.acc.x *= 0.75                
-        else:
-            self.player.acc.x = 0
+                if self.tick >= len(self.replay_archive[r]) - 1:
+                    if r == 0:
+                        print 'Replay finished.'
+                        self.mode = 0                        
+                        pyglet.clock.schedule_once(self.window.edit, 0.0)
+                        return
+                    else:                        
+                        continue
 
-        if key_int & KEY_JUMP:
-            self.player.jump()
-        else:
-            self.player.jump_release()        
+                key_int = self.replay_archive[r][self.tick]
 
-        # integrate
-        self.player.update(dt2)
-        # self.map.update(dt)
+            if key_int & KEY_LEFT:
+                p.acc.x = -2000
+                if p.air != player.ON_GROUND:
+                    p.acc.x *= 0.75
+
+            elif key_int & KEY_RIGHT:            
+                p.acc.x = 2000
+                if p.air != player.ON_GROUND:
+                    p.acc.x *= 0.75                
+            else:
+                p.acc.x = 0
+
+            if key_int & KEY_JUMP:
+                p.jump()
+            else:
+                p.jump_release()        
+
+            # integrate
+            p.update(dt2)
+            # collisions = 
+            
+
         for o in self.map.objects:
             o.update(dt2)
 
@@ -123,7 +140,7 @@ class Game(object):
             for o in self.map.objects:
                 o.ai(self.player, self.map)
 
-        self.collide()        
+        self.collide()
         self.tick += 1
 
     def collide(self):
@@ -144,15 +161,19 @@ class Game(object):
         - resolve        
         """
 
-        # collisions = 
-        for c in self.map.collide_geometry(self.player):
-            pass
-            # print 'player vs map', c
+        self.map.collide_geometry(self.player)
+
+        for g in self.ghosts:
+            self.map.collide_geometry(g)
+
 
         for c in self.map.collide_objects(self.player):
             # pass
             # print 'player vs object', c
-            pyglet.clock.schedule_once(self.init_state, 0.0)
+            if self.mode == 0:
+                self.replay_archive.append(self.replay)
+                pyglet.clock.schedule_once(self.init_state, 0.0)
+            
             return
 
         
@@ -182,6 +203,8 @@ class Game(object):
         self.window.clear()
         self.map.draw()
         self.player.sprite.draw()
+        for g in self.ghosts:
+            g.sprite.draw()    
         # self.window.fps_display.draw()
 
     def on_key_press(self, symbol, modifiers):
