@@ -100,5 +100,7 @@ class Game(object):
         if symbol == key.ESCAPE:
             self.map.save()
             pyglet.app.exit()
-        if symbol == key.TAB:            
-            pyglet.clock.schedule_once(self.window.edit, 0.0)        
+        if symbol == key.TAB:
+            pyglet.clock.schedule_once(self.window.edit, 0.0)
+            self.map._highlight.enabled = True
+

@@ -41,23 +41,15 @@ class Game(object):
         self.map.draw()
         self.window.fps_display.draw()
 
-    def on_mouse_motion(self, x, y, dx, dy): 
-        self.cursor = [x / map.MAP_TILESIZE, y / map.MAP_TILESIZE]
-        self.map.highlight(*self.cursor)
-
-    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
-        if x / map.MAP_TILESIZE != self.cursor[0] or y / map.MAP_TILESIZE != self.cursor[1]:
-            self.on_mouse_press(x, y, buttons, modifiers)
-        self.on_mouse_motion(x, y, dx, dy)
-
     def on_key_press(self, symbol, modifiers):
 
         if symbol == key.ESCAPE:
             self.map.save()
             pyglet.app.exit()
 
-        if symbol == key.TAB:
+        if symbol == key.TAB:            
             pyglet.clock.schedule_once(self.window.play, 0.0)
+            self.map._highlight.enabled = False
 
         # set block type
         if symbol == key._0:
@@ -69,7 +61,22 @@ class Game(object):
         if symbol == key._3:
             self.mode = map.T_BLOCK_STEEL
 
-    def on_mouse_press(self, x, y, button, modifiers):        
+    def on_mouse_motion(self, x, y, dx, dy): 
+        x = max(0, min(self.window.width-1, x))
+        y = max(0, min(self.window.height-1, y))
+        self.cursor = [x / map.MAP_TILESIZE, y / map.MAP_TILESIZE]
+        self.map.highlight(*self.cursor)
+
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        x = max(0, min(self.window.width-1, x))
+        y = max(0, min(self.window.height-1, y))
+        if x / map.MAP_TILESIZE != self.cursor[0] or y / map.MAP_TILESIZE != self.cursor[1]:
+            self.on_mouse_press(x, y, buttons, modifiers)
+        self.on_mouse_motion(x, y, dx, dy)
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        x = max(0, min(self.window.width-1, x))
+        y = max(0, min(self.window.height-1, y))        
         if button == 1: 
             self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.mode)         
         else:          
