@@ -3,20 +3,23 @@ import math
 from gamelib.objects import obj
 from gamelib import map
 
-if not sys.modules.has_key('gamelib.controller.headless'):
-    from pyglet import sprite 
+ON_GROUND           = 0x00
+JUMPING             = 0x01
+FALLING             = 0x02
 
-
-ON_GROUND   = 0x00
-JUMPING     = 0x01
-FALLING     = 0x02
+KEY_LEFT            = 0x01
+KEY_RIGHT           = 0x02
+KEY_JUMP            = 0x04
 
 class Player(obj.GameObject):
 
     collide = obj.COL_AABB
     width = 20
     height = 43
-    
+    dampening = 0.9
+    tex_index = 0
+    tex_anchor = 7
+
     def __init__(self, x=32, y=32):
         super(Player, self).__init__(x, y)
         self.acc.y = -2000        
@@ -25,10 +28,27 @@ class Player(obj.GameObject):
         self.jump_timer = 0
         self.jump_held = False
 
-        if not sys.modules.has_key('gamelib.controller.headless'):    
-            obj.sprites[0].anchor_x = 7
-            self.sprite = sprite.Sprite(obj.sprites[0])
-        
+    def input(self, controls):
+
+        if controls & KEY_LEFT:
+            self.face(1)
+            self.acc.x = -2000
+            if self.air != ON_GROUND:
+                self.acc.x *= 0.75
+
+        elif controls & KEY_RIGHT:
+            self.face(0)
+            self.acc.x = 2000
+            if self.air != ON_GROUND:
+                self.acc.x *= 0.75                
+        else:
+            self.acc.x = 0
+
+        if controls & KEY_JUMP:
+            self.jump()
+        else:
+            self.jump_release()        
+
     def ground(self):
         self.air = ON_GROUND        
         self.acc.y = 0
@@ -59,16 +79,13 @@ class Player(obj.GameObject):
                 self.jump_distance *= 0.95
 
         # give 10 ticks of grace time that jump can be hit before a platform is touched
-        elif self.air == FALLING and not self.jump_held and self.jump_timer == 0:
-            # print "jump timer set"
+        elif self.air == FALLING and not self.jump_held and self.jump_timer == 0:            
             self.jump_timer = 30
 
         elif self.jump_held and self.jump_timer > 0:
-            self.jump_timer -= 1
-            # print self.jump_timer
+            self.jump_timer -= 1            
         else:
-            pass
-            # print 'what'
+            pass            
 
         self.jump_held = True
 
@@ -78,8 +95,3 @@ class Player(obj.GameObject):
         self.jump_timer = 0
         if self.air == JUMPING:
             self.air == FALLING
-
-    def update(self, dt2):
-        self.integrate(0, dt2, dampening=0.90)
-        if not sys.modules.has_key('gamelib.controller.headless'):
-            self.sprite.set_position(self.pos.x, self.pos.y)

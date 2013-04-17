@@ -15,10 +15,6 @@ if not sys.modules.has_key('gamelib.controller.headless'):
     from pyglet.window import key
     from pyglet import clock
 
-KEY_LEFT            = 0x01
-KEY_RIGHT           = 0x02
-KEY_JUMP            = 0x04
-
 class Replay(object):
     """
     The Game class is THE MAN.
@@ -88,24 +84,8 @@ class Replay(object):
         """
         
         controls = self.replay[self.tick]
-
-        if controls & KEY_LEFT:
-            self.player.acc.x = -2000
-            if self.player.air != player.ON_GROUND:
-                self.player.acc.x *= 0.75
-
-        elif controls & KEY_RIGHT:            
-            self.player.acc.x = 2000
-            if self.player.air != player.ON_GROUND:
-                self.player.acc.x *= 0.75                
-        else:
-            self.player.acc.x = 0
-
-        if controls & KEY_JUMP:
-            self.player.jump()
-        else:
-            self.player.jump_release()        
-
+   
+        self.player.input(controls)
         # integrate
         self.player.update(dt2)
         
