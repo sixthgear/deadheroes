@@ -107,9 +107,9 @@ class Map(object):
             self._highlight.enabled = False
             self._object_sprite_batch = pyglet.graphics.Batch()
             self._vertex_list = pyglet.graphics.vertex_list(0, 'v2f', 't2f')
-            self._vertex_list_dirty = True    
+            self._vertex_list_dirty = True
 
-        self.spawn_player()    
+        self.spawn_player()
 
     @classmethod
     def load(cls, map_id):
@@ -127,9 +127,11 @@ class Map(object):
             for key, o in data['objects'].iteritems():
                 m.object_spawn_list[int(key)] = o
 
-            m.player_spawn = data.player_spawn
+            m.player_spawn = data['player_spawn']
 
+            m.spawn_player()
             m.spawn_objects()
+
         return m
 
     def save(self):

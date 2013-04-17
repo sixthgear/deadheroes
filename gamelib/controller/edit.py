@@ -25,7 +25,7 @@ class Editor(object):
 
         try:
             self.map = map.Map.load(0)
-        except:
+        except IOError:
             self.map = map.Map(40, 23)
         
         self.mode = MODE_TILE
