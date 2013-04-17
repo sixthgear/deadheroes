@@ -5,12 +5,12 @@ from pyglet.window import key
 from pyglet import clock
 from gamelib import vector
 from gamelib import map
+from gamelib.ui import hud_edit
 
 
-class Game(object):
-
+class Editor(object):
     """
-    The Game class is THE MAN.
+    The Dungeon Editor
     """    
 
     def __init__(self, window):     
@@ -18,11 +18,12 @@ class Game(object):
         self.music = None                
         self.keys = key.KeyStateHandler()
         self.cursor = [0,0]
+        self.hud = hud_edit.HUD()
 
         try:
             self.map = map.Map.load(0)
         except:
-            self.map = map.Map(40, 25)
+            self.map = map.Map(40, 23)
 
         self.mode = map.T_BLOCK_WOOD
         self.init_gl()
@@ -39,6 +40,7 @@ class Game(object):
     def on_draw(self):
         self.window.clear()
         self.map.draw()
+        self.hud.draw()
         self.window.fps_display.draw()
 
     def on_key_press(self, symbol, modifiers):
@@ -47,9 +49,13 @@ class Game(object):
             self.map.save()
             pyglet.app.exit()
 
-        if symbol == key.TAB:            
+        if symbol == key.TAB:
             pyglet.clock.schedule_once(self.window.play, 0.0)
             self.map._highlight.enabled = False
+
+        # clear map
+        if symbol == key.C:
+            self.map = map.Map(40, 23)
 
         # set block type
         if symbol == key._0:

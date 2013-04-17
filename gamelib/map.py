@@ -1,3 +1,4 @@
+import sys
 import random
 import pyglet
 import json
@@ -6,8 +7,10 @@ import requests
 from gamelib import collide
 from gamelib import vector
 from gamelib.objects import obj
+from gamelib.objects import monsters
 
-from pyglet.gl import *
+if not sys.modules.has_key('gamelib.controller.headless'):
+    from pyglet.gl import *
 
 # pixel size of a tile
 MAP_TILESIZE = 32          
@@ -72,8 +75,6 @@ class Map(object):
     The Map class holds a single multi-level dungeon.
     """
 
-    tiles_tex = pyglet.resource.texture('tiles.png')
-    
     def __init__(self, width, height):
         """
         Creates a new blank map.
@@ -96,12 +97,14 @@ class Map(object):
         # this includes enemies, switches, wires, etc.
         self.objects = []
 
-        # internal rendering data
-        self._highlight = pyglet.graphics.vertex_list(4, 'v2f')
-        self._highlight.enabled = False
-        self._object_sprite_batch = pyglet.graphics.Batch()
-        self._vertex_list = pyglet.graphics.vertex_list(0, 'v2f', 't2f')
-        self._vertex_list_dirty = True    
+        if not sys.modules.has_key('gamelib.controller.headless'):
+            # internal rendering data            
+            self.tiles_tex = pyglet.resource.texture('tiles.png')
+            self._highlight = pyglet.graphics.vertex_list(4, 'v2f')
+            self._highlight.enabled = False
+            self._object_sprite_batch = pyglet.graphics.Batch()
+            self._vertex_list = pyglet.graphics.vertex_list(0, 'v2f', 't2f')
+            self._vertex_list_dirty = True    
 
     @classmethod
     def load(cls, map_id):
@@ -129,6 +132,19 @@ class Map(object):
                 'edges': [t.edges for t in self.grid],
             })
             f.write(jsondata)        
+
+
+    def spawn_objects(self):
+        for i in range(20):
+            p = random.randrange(self.width), random.randrange(self.height)
+            tile = self.get(*p)
+            if tile.is_empty and self.up(tile).is_empty:
+                z = monsters.Zombie(p[0] * MAP_TILESIZE, p[1] * MAP_TILESIZE)
+                if not sys.modules.has_key('gamelib.controller.headless'):
+                    z.sprite.batch = self._object_sprite_batch
+                self.objects.append(z)
+                self.hash_object(z)
+
 
     # tile lookup convinience methods        
     def get(self, x, y): 
@@ -163,6 +179,10 @@ class Map(object):
         """
         Modify the map and mark dirty so we rebuild the list.
         """
+
+        if x < 0 or y < 0 or x > self.width - 1 or y > self.height -1:            
+            return
+
         tile = self.get(x,y)
 
         # can't change boundaries
@@ -328,6 +348,7 @@ class Map(object):
             glColor4f(1,1,1,.5)
             self._highlight.draw(GL_QUADS)
             glColor4f(1,1,1,1)
+            glEnable(GL_TEXTURE_2D)
 
 
     def rebuild_vertices(self):
@@ -374,6 +395,11 @@ class Map(object):
         """
         Highlight a given tile location.
         """
+
+        if x < 0 or y < 0 or x > self.width - 1 or y > self.height -1:
+            self._highlight.enabled = False
+            return
+
         tile = self.get(x, y)
         # can't highlight boundaries
         if self.is_bound(tile):

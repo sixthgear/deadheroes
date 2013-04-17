@@ -1,7 +1,10 @@
+import sys
 import math
 from gamelib.objects import obj
 from gamelib import map
-from pyglet import sprite 
+
+if not sys.modules.has_key('gamelib.controller.headless'):
+    from pyglet import sprite 
 
 
 ON_GROUND   = 0x00
@@ -16,13 +19,15 @@ class Player(obj.GameObject):
     
     def __init__(self, x=32, y=32):
         super(Player, self).__init__(x, y)
-        self.acc.y = -2000
-        obj.sprites[0].anchor_x = 7
-        self.sprite = sprite.Sprite(obj.sprites[0])
+        self.acc.y = -2000        
         self.air = FALLING
         self.jump_distance = 0
         self.jump_timer = 0
         self.jump_held = False
+
+        if not sys.modules.has_key('gamelib.controller.headless'):    
+            obj.sprites[0].anchor_x = 7
+            self.sprite = sprite.Sprite(obj.sprites[0])
         
     def ground(self):
         self.air = ON_GROUND        
@@ -76,4 +81,5 @@ class Player(obj.GameObject):
 
     def update(self, dt2):
         self.integrate(0, dt2, dampening=0.90)
-        self.sprite.set_position(self.pos.x, self.pos.y)
+        if not sys.modules.has_key('gamelib.controller.headless'):
+            self.sprite.set_position(self.pos.x, self.pos.y)

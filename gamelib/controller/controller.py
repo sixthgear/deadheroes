@@ -5,6 +5,7 @@ from gamelib import fixedsteploop
 
 import edit
 import play
+import replay
 
 class Controller(pyglet.window.Window):
 
@@ -20,12 +21,11 @@ class Controller(pyglet.window.Window):
 
     def __init__(self):
         super(Controller, self).__init__(**self.properties)
-        self.set_vsync(True)
+        self.set_vsync(False)
         self.states = {}
         self.current_state = None
-        self.fps_display = pyglet.clock.ClockDisplay()
-        # self.timer = clock.schedule_interval(self.update, self.DT)
-        self.timer = fixedsteploop.FixedStepLoop(self.update, self.DT, 1/30.0)
+        self.fps_display = pyglet.clock.ClockDisplay()        
+        self.timer = fixedsteploop.FixedStepLoop(self.update, self.DT, self.DT*2)
                 
     def switch(self, name, state=None):
 
@@ -43,17 +43,29 @@ class Controller(pyglet.window.Window):
         self.push_handlers(self.current_state.keys)
         
     def edit(self, dt=0.0):
-        self.switch('edit', edit.Game(window=self))
+        self.switch('edit', edit.Editor(window=self))
+
 
     def play(self, dt=0.0):
 
         if self.states.has_key('play'):
             del self.states['play']
 
-        if self.states.has_key('edit'):            
-            self.switch('play', play.Game(window=self, dungeon=self.states['edit'].map))
-        else:
-            self.switch('play', play.Game(window=self))
+        d = self.states['edit'].map
+        self.switch('play', play.Game(window=self, dungeon=d))
+        
+
+    def replay(self, dt=0.0):
+
+        if self.states.has_key('replay'):
+            del self.states['replay']
+
+        r = self.states['play'].replay
+        d = self.states['play'].map
+        state = replay.Replay(window=self, dungeon=d, replay=r)
+        state.save()
+        
+        self.switch('replay', state)
 
     def update(self, dt):
         self.current_state.update(self.DT2)

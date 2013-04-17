@@ -2,6 +2,11 @@
 import sys
 sys.path.insert(0,'lib')
 
+if len(sys.argv) > 1 and sys.argv[1] == 'headless':
+    from gamelib.controller import headless
+    headless.run()
+    sys.exit()
+
 import pyglet
 pyglet.options['debug_gl'] = False
 pyglet.resource.path = ['data']

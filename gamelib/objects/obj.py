@@ -1,17 +1,20 @@
+import sys
 from collections import namedtuple, OrderedDict, defaultdict
-from pyglet.gl import *
-from pyglet import image
 from gamelib import vector
+if not sys.modules.has_key('gamelib.controller.headless'):
+    from pyglet.gl import *
+    from pyglet import image
 
 Point = namedtuple('Point', 'x y')
 
 COL_AABB = 0x00
 COL_CIRCLE = 0x01
 
-# get an image sequence for all of the sprites
-sprites = image.ImageGrid(pyglet.resource.texture('sprites.png'), 8, 16).get_texture_sequence()
-for s in sprites:
-    pass
+if not sys.modules.has_key('gamelib.controller.headless'):
+    # get an image sequence for all of the sprites
+    sprites = image.ImageGrid(pyglet.resource.texture('sprites.png'), 8, 16).get_texture_sequence()
+    for s in sprites:
+        pass
     
 class GameObject(object):
 
