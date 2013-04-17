@@ -24,7 +24,7 @@ class Zombie(obj.GameObject):
         self.air = FALLING
         self.collisions = []
         if not sys.modules.has_key('gamelib.controller.headless'):
-            obj.sprites[1].anchor_x = 2
+            obj.sprites[1].anchor_x = 0
             self.sprite = sprite.Sprite(obj.sprites[1])
         
     def ground(self):

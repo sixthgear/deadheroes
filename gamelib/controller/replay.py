@@ -1,48 +1,77 @@
 # from objects import player
+import os
+import time
 import sys
 import random
 import array
+import base64
 
 from gamelib import vector
 from gamelib import map
 from gamelib.objects import player
 
-from pyglet.gl import *
-from pyglet.window import key
-from pyglet import clock
+if not sys.modules.has_key('gamelib.controller.headless'):
+    from pyglet.gl import *
+    from pyglet.window import key
+    from pyglet import clock
 
 KEY_LEFT            = 0x01
 KEY_RIGHT           = 0x02
 KEY_JUMP            = 0x04
 
-class Game(object):
+class Replay(object):
     """
     The Game class is THE MAN.
     """
-    def __init__(self, dungeon, window=None):
-                
-        self.map = dungeon
+
+    def __init__(self, dungeon, replay, window=None):
         
         self.window = window
-        self.music = None
-        self.keys = key.KeyStateHandler()        
-        self.init_gl()
-                
+        self.tick = 0        
+        self.map = dungeon
+        self.replay = replay                        
         self.init_state()
+
+        if not sys.modules.has_key('gamelib.controller.headless'):
+            self.window = window
+            self.music = None
+            self.keys = key.KeyStateHandler()        
+            self.init_gl()
+
+    @classmethod
+    def load(cls, filename, dungeon, window=None):
+
+        with open (filename, 'r') as f:
+            print 'Loading replay...'
+            size = os.stat(filename)[6]
+            r = array.array('B')
+            r.fromstring(base64.b64decode(f.read()))
+            return cls(dungeon=dungeon, replay=r, window=window)            
+
+    def save(self):
+        with open ('replay.rep', 'w') as f:
+            print 'Saving replay (%d bytes, %d seconds)...' % (len(self.replay), len(self.replay) / 60)        
+            f.write(base64.b64encode(self.replay.tostring()))
+            print 'Success!'
 
     def init_state(self):
 
         random.seed(0)
-        self.tick = 0
-        self.player = player.Player(32, 32)            
-        self.replay = array.array('B')
-        
+        self.tick = 0        
+        self.player = player.Player(32, 32)
+
+        # MULTI REPLAY SUPPORT
+        # self.replay_archive.sort(key=lambda r: len(r), reverse=True)
+        # self.ghosts = [player.Player(32, 32) for r in self.replay_archive[1:]]
+        # self.replay = self.replay_archive[0]
+
         for t in self.map.grid:
             t.objects.clear()
 
         self.map.objects = []
-        self.map.spawn_objects()
+        self.map.spawn_objects()        
         self.map.hash_object(self.player)
+
 
     def init_gl(self):
         """
@@ -57,16 +86,9 @@ class Game(object):
         """
         Sample input, integrate game physics, and resolve collisions.
         """
-        # sample input
-        controls = 0
-        if self.keys[key.LEFT]:
-            controls |= KEY_LEFT
-        if self.keys[key.RIGHT]:
-            controls |= KEY_RIGHT
-        if self.keys[key.SPACE]:
-            controls |= KEY_JUMP
-        self.replay.append(controls)
         
+        controls = self.replay[self.tick]
+
         if controls & KEY_LEFT:
             self.player.acc.x = -2000
             if self.player.air != player.ON_GROUND:
@@ -86,9 +108,7 @@ class Game(object):
 
         # integrate
         self.player.update(dt2)
-        # collisions = 
         
-
         for o in self.map.objects:
             o.update(dt2)
 
@@ -98,6 +118,17 @@ class Game(object):
 
         self.collide()
         self.tick += 1
+
+        if self.tick >= len(self.replay):
+            print 'Replay finished.'
+            if not sys.modules.has_key('gamelib.controller.headless'):                            
+                pyglet.clock.schedule_once(self.window.play, 0.0)
+            print 'Player pos: ', self.player.pos
+            print 'Player acc: ', self.player.acc    
+            return 0
+        else:
+            return 1
+            
 
     def collide(self):
         """
@@ -119,8 +150,13 @@ class Game(object):
 
         self.map.collide_geometry(self.player)
 
+        # MULTI REPLAY SUPPORT
+        # for g in self.ghosts:
+        #     self.map.collide_geometry(g)
+
         for c in self.map.collide_objects(self.player):
-            pyglet.clock.schedule_once(self.window.replay, 0.0)
+            # player die
+            # pyglet.clock.schedule_once(self.edit, 0.0)
             return
         
         for o in self.map.objects:
@@ -138,8 +174,11 @@ class Game(object):
         """
         self.window.clear()
         self.map.draw()
-        self.player.sprite.draw()        
-        # self.window.fps_display.draw()
+        self.player.sprite.draw()
+
+        # MULTI REPLAY SUPPORT
+        # for g in self.ghosts:
+        #     g.sprite.draw()
 
     def on_key_press(self, symbol, modifiers):
         """
@@ -150,5 +189,6 @@ class Game(object):
             pyglet.app.exit()
         elif symbol == key.TAB:
             pyglet.clock.schedule_once(self.window.edit, 0.0)
-            self.map._highlight.enabled = True
-        
+            self.map._highlight.enabled = True                    
+        elif symbol == key.SPACE:
+            pyglet.clock.schedule_once(self.window.play, 0.0)                       
