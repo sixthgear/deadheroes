@@ -8,8 +8,13 @@ if not sys.modules.has_key('gamelib.controller.headless'):
 
 Point = namedtuple('Point', 'x y')
 
-COL_AABB = 0x00
-COL_CIRCLE = 0x01
+COL_AABB            = 0x00
+COL_CIRCLE          = 0x01
+
+ON_GROUND           = 0x00
+JUMPING             = 0x01
+FALLING             = 0x02
+
 
 if not sys.modules.has_key('gamelib.controller.headless'):
     # get an image sequence for all of the sprites
@@ -30,11 +35,21 @@ class GameObject(object):
         self.pos0 = vector.Vec2d(x, y)
         self.acc = vector.Vec2d(0, 0)        
         self.facing = 1
+        self.air = FALLING
         self.tiles = set()
 
         if not sys.modules.has_key('gamelib.controller.headless'):            
             self.sprite = sprite.Sprite(sprites[self.tex_index])
             self.sprite.image.anchor_x = self.tex_anchor
+
+    def ground(self):
+        self.air = ON_GROUND        
+        self.acc.y = 0
+
+    def fall(self):
+        if self.air == ON_GROUND:
+            self.air = FALLING
+            self.acc.y = -2000
 
     def face(self, facing):        
         if facing != self.facing:
@@ -52,7 +67,8 @@ class GameObject(object):
         if not sys.modules.has_key('gamelib.controller.headless'):
             self.sprite.set_position(self.pos.x, self.pos.y)            
                 
-
+    def collide(self, collisions):
+        pass
 
     def integrate(self, t, dt2, dampening=1.0):
         """

@@ -135,7 +135,7 @@ class Map(object):
 
 
     def spawn_objects(self):
-        for i in range(20):
+        for i in range(5):
             p = random.randrange(self.width), random.randrange(self.height)
             tile = self.get(*p)
             if tile.is_empty and self.up(tile).is_empty:
@@ -144,6 +144,20 @@ class Map(object):
                     z.sprite.batch = self._object_sprite_batch
                 self.objects.append(z)
                 self.hash_object(z)
+                    
+        for i in range(5):
+            p = random.randrange(self.width), random.randrange(self.height)
+            tile = self.get(*p)
+            if tile.is_empty and self.up(tile).is_empty:
+                r = monsters.Robot(p[0] * MAP_TILESIZE, p[1] * MAP_TILESIZE)
+                if not sys.modules.has_key('gamelib.controller.headless'):
+                    r.sprite.batch = self._object_sprite_batch
+                self.objects.append(r)
+                self.hash_object(r)
+
+
+
+                
 
 
     # tile lookup convinience methods        
