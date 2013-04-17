@@ -3,9 +3,11 @@ from pyglet import clock
 from pyglet.window import key
 from gamelib import fixedsteploop
 
+import copy
 import edit
 import play
 import replay
+import login
 
 class Controller(pyglet.window.Window):
 
@@ -21,7 +23,7 @@ class Controller(pyglet.window.Window):
 
     def __init__(self):
         super(Controller, self).__init__(**self.properties)
-        self.set_vsync(False)
+        self.set_vsync(False)        
         self.states = {}
         self.current_state = None
         self.fps_display = pyglet.clock.ClockDisplay()        
@@ -42,7 +44,17 @@ class Controller(pyglet.window.Window):
         self.push_handlers(self.current_state)
         self.push_handlers(self.current_state.keys)
         
+
+
+    def login(self, dt=0.0):
+        self.switch('login', login.Login(window=self))
+
+
     def edit(self, dt=0.0):
+        if self.states.has_key('edit'):
+            self.states['edit'].map.despawn_objects()
+            self.states['edit'].map.spawn_objects()
+            self.states['edit'].map.spawn_player()
         self.switch('edit', edit.Editor(window=self))
 
 
@@ -52,6 +64,7 @@ class Controller(pyglet.window.Window):
             del self.states['play']
 
         d = self.states['edit'].map
+
         self.switch('play', play.Game(window=self, dungeon=d))
         
 
@@ -100,5 +113,6 @@ class Controller(pyglet.window.Window):
         Setup the environment and run with it.
         """            
         self.setup_gl()
+        # self.login()
         self.edit()
         pyglet.app.run()

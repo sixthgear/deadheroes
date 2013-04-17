@@ -22,9 +22,26 @@ class HUD(object):
         self._label_batch = pyglet.graphics.Batch()
 
         self.labels = {
-            'money': text.Label('1,000,000 EVIL DOLLARS', x=160, y=768, font_size=12, font_name="Arial", anchor_x='left', anchor_y='center', batch=self._label_batch),  
-            'title': text.Label('DESIGN YOUR DUNGEON', x=640, y=768, anchor_x='center', anchor_y='center', font_size=24, font_name="Arial", batch=self._label_batch),
-            'done': text.Label('DONE', x=1244, y=768, anchor_x='right', anchor_y='center', font_size=12, font_name="Arial", batch=self._label_batch),
+            'money': text.Label(
+                '1,000,000 EVIL DOLLARS', 
+                x=160, y=768, 
+                font_size=12, font_name="Arial", anchor_x='left', anchor_y='center', 
+                color=(100,100,100,255),
+                batch=self._label_batch),  
+
+            'title': text.Label(
+                'DESIGN YOUR DUNGEON', 
+                x=640, y=768, 
+                font_size=24, font_name="Arial", anchor_x='center', anchor_y='center',
+                color=(100,100,100,255),
+                batch=self._label_batch),
+
+            'done': text.Label(
+                'DONE', 
+                x=1244, y=768, 
+                font_size=12, font_name="Arial", anchor_x='right', anchor_y='center',  
+                color=(100,100,100,255),
+                batch=self._label_batch),
             'q': text.Label('Q', x=32, y=768, anchor_x='center', anchor_y='center', font_size=12, font_name="Arial", color=(0,0,0,255), batch=self._label_batch),
             'w': text.Label('W', x=76, y=768, anchor_x='center', anchor_y='center', font_size=12, font_name="Arial", color=(0,0,0,255), batch=self._label_batch),
             'e': text.Label('E', x=120, y=768, anchor_x='center', anchor_y='center', font_size=12, font_name="Arial", color=(0,0,0,255), batch=self._label_batch),

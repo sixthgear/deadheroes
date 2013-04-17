@@ -7,9 +7,10 @@ from gamelib import vector
 from gamelib import map
 from gamelib.objects import player
 
-from pyglet.gl import *
-from pyglet.window import key
-from pyglet import clock
+if not sys.modules.has_key('gamelib.controller.headless'):
+    from pyglet.gl import *
+    from pyglet.window import key
+    from pyglet import clock
 
 class Game(object):
     """
@@ -30,15 +31,11 @@ class Game(object):
 
         random.seed(0)
         self.tick = 0
-        self.player = player.Player(32, 32)            
-        self.replay = array.array('B')
         
-        for t in self.map.grid:
-            t.objects.clear()
-
-        self.map.objects = []
+        self.replay = array.array('B')
+        self.map.despawn_objects()        
         self.map.spawn_objects()
-        self.map.hash_object(self.player)
+        self.map.spawn_player()
 
     def init_gl(self):
         """
@@ -47,13 +44,9 @@ class Game(object):
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glShadeModel(GL_SMOOTH)
-        glClearColor(0.1, 0.05, 0.0, 1.0)
+        glClearColor(0.9,0.9,0.9,1.0)
 
-    def update(self, dt2):
-        """
-        Sample input, integrate game physics, and resolve collisions.
-        """
-        # sample input
+    def sample_input(self):
         controls = 0
         if self.keys[key.LEFT]:
             controls |= player.KEY_LEFT
@@ -62,19 +55,23 @@ class Game(object):
         if self.keys[key.SPACE]:
             controls |= player.KEY_JUMP
         self.replay.append(controls)
-    
-        self.player.input(controls)
-        # integrate
-        self.player.update(dt2)
-        # collisions = 
-        
+        return controls
 
+    def update(self, dt2):
+        """
+        Sample input, integrate game physics, and resolve collisions.
+        """
+        # sample input
+        controls = self.sample_input()        
+        self.map.player.input(controls)        
+        self.map.player.update(dt2)
+        
         for o in self.map.objects:
             o.update(dt2)
 
         if self.tick % 20 == 0:
             for o in self.map.objects:
-                o.ai(self.player, self.map)
+                o.ai(self.map.player, self.map)
 
         self.collide()
         self.tick += 1
@@ -97,20 +94,24 @@ class Game(object):
         - resolve        
         """
 
-        self.map.collide_geometry(self.player)
+        self.map.collide_geometry(self.map.player)
 
-        for c in self.map.collide_objects(self.player):
-            pyglet.clock.schedule_once(self.window.replay, 0.0)
+        for c in self.map.collide_objects(self.map.player):
+            print 'DEAD!'
+            pyglet.clock.schedule_once(self.window.edit, 0.0)
             return
         
         for o in self.map.objects:
             for c in self.map.collide_geometry(o):
-                pass
+                o.collide(c)
                 
-        self.map.hash_object(self.player)
+        self.map.hash_object(self.map.player)
 
         for o in self.map.objects:            
             self.map.hash_object(o)
+
+        for o in [o for o in self.map.objects if not o.alive]:
+            self.map.despawn_object(o)    
     
     def on_draw(self):
         """
@@ -118,7 +119,7 @@ class Game(object):
         """
         self.window.clear()
         self.map.draw()
-        self.player.sprite.draw()        
+        self.map.player.sprite.draw()        
         # self.window.fps_display.draw()
 
     def on_key_press(self, symbol, modifiers):

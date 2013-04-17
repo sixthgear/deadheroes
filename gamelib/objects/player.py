@@ -1,8 +1,6 @@
 import sys
 import math
 from gamelib.objects import obj
-from gamelib import map
-
 
 KEY_LEFT            = 0x01
 KEY_RIGHT           = 0x02

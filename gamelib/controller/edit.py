@@ -4,9 +4,12 @@ from pyglet.gl import *
 from pyglet.window import key
 from pyglet import clock
 from gamelib import vector
+from gamelib.objects.info import *
 from gamelib import map
 from gamelib.ui import hud_edit
 
+MODE_TILE = 0x01
+MODE_OBJ = 0x02
 
 class Editor(object):
     """
@@ -24,15 +27,18 @@ class Editor(object):
             self.map = map.Map.load(0)
         except:
             self.map = map.Map(40, 23)
+        
+        self.mode = MODE_TILE
+        self.selected_tile = map.T_BLOCK_WOOD
+        self.selected_object = ZOMBIE
 
-        self.mode = map.T_BLOCK_WOOD
         self.init_gl()
 
     def init_gl(self):
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glShadeModel(GL_SMOOTH)
-        glClearColor(0.1,0.05,0.0,1.0)
+        glClearColor(0.9,0.9,0.9,1.0)
 
     def update(self, dt):
         pass
@@ -59,13 +65,37 @@ class Editor(object):
 
         # set block type
         if symbol == key._0:
-            self.mode = map.T_EMPTY
+            self.mode = MODE_TILE
+            self.selected_tile = map.T_EMPTY
         if symbol == key._1:
-            self.mode = map.T_BLOCK_WOOD
+            self.mode = MODE_TILE
+            self.selected_tile = map.T_BLOCK_WOOD
         if symbol == key._2:
-            self.mode = map.T_BLOCK_CONCRETE
+            self.mode = MODE_TILE
+            self.selected_tile = map.T_BLOCK_CONCRETE
         if symbol == key._3:
-            self.mode = map.T_BLOCK_STEEL
+            self.mode = MODE_TILE
+            self.selected_tile = map.T_BLOCK_STEEL
+        if symbol == key.Q:
+            self.mode = MODE_OBJ
+            self.selected_object = PLAYER
+        if symbol == key.W:
+            self.mode = MODE_OBJ
+            self.selected_object = ZOMBIE
+        if symbol == key.E:
+            self.mode = MODE_OBJ
+            self.selected_object = ROBOT
+        if symbol == key.R:
+            self.mode = MODE_OBJ
+            self.selected_object = LAUNCHER
+        if symbol == key.T:
+            self.mode = MODE_OBJ
+            self.selected_object = DOOR
+        if symbol == key.Y:
+            self.mode = MODE_OBJ
+            self.selected_object = CHEST
+
+
 
     def on_mouse_motion(self, x, y, dx, dy): 
         x = max(0, min(self.window.width-1, x))
@@ -82,11 +112,18 @@ class Editor(object):
 
     def on_mouse_press(self, x, y, button, modifiers):
         x = max(0, min(self.window.width-1, x))
-        y = max(0, min(self.window.height-1, y))        
-        if button == 1: 
-            self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.mode)         
-        else:          
+        y = max(0, min(self.window.height-1, y))
+
+        
+        if self.mode == MODE_TILE and button == 1:
+            self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.selected_tile)
+        elif self.mode == MODE_OBJ and button == 1:
+            self.map.place(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.selected_object)
+        elif self.mode == MODE_TILE and button == 4:
             self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, 0)
+        elif self.mode == MODE_OBJ and button == 4:            
+            self.map.unplace(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE)
+
                         
     def on_mouse_release(self, x, y, button, modifiers):
         pass

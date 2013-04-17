@@ -6,8 +6,10 @@ import requests
 
 from gamelib import collide
 from gamelib import vector
-from gamelib.objects import obj
-from gamelib.objects import monsters
+from gamelib.objects.info import *
+
+# from gamelib.objects import obj
+# from gamelib.objects import monsters
 
 if not sys.modules.has_key('gamelib.controller.headless'):
     from pyglet.gl import *
@@ -44,9 +46,7 @@ T_EMPTY                 = 0x00
 T_BLOCK_WOOD            = 0x01
 T_BLOCK_CONCRETE        = 0x02
 T_BLOCK_STEEL           = 0x03
-T_COLUMN                = 0x04
-T_FLOOR                 = 0x05
-T_LADDER                = 0x06
+
 
 # texture mutators for different edge congifurations.
 # the first element of the tuple represents the texture index offset to add to the base index
@@ -92,10 +92,13 @@ class Map(object):
             if self.is_bound(tile, E_ALL):
                 self.change(tile.x, tile.y, T_BLOCK_CONCRETE, force=True)
 
-        # object data
+        # live object data
         # these are all the game objects the maps needs to render over top of the tiles
         # this includes enemies, switches, wires, etc.
+        self.player = None
         self.objects = []
+        self.object_spawn_list = {}
+        self.player_spawn = 42            
 
         if not sys.modules.has_key('gamelib.controller.headless'):
             # internal rendering data            
@@ -105,6 +108,8 @@ class Map(object):
             self._object_sprite_batch = pyglet.graphics.Batch()
             self._vertex_list = pyglet.graphics.vertex_list(0, 'v2f', 't2f')
             self._vertex_list_dirty = True    
+
+        self.spawn_player()    
 
     @classmethod
     def load(cls, map_id):
@@ -118,6 +123,13 @@ class Map(object):
                 for x in range(m.width):
                     i = y * m.width + x
                     m.grid[i] = Tile(x, y, data['grid'][i], data['edges'][i])
+
+            for key, o in data['objects'].iteritems():
+                m.object_spawn_list[int(key)] = o
+
+            m.player_spawn = data.player_spawn
+
+            m.spawn_objects()
         return m
 
     def save(self):
@@ -130,36 +142,54 @@ class Map(object):
                 'height': self.height,
                 'grid': [t.type for t in self.grid],
                 'edges': [t.edges for t in self.grid],
+                'objects': self.object_spawn_list,
+                'player_spawn': self.player_spawn
             })
-            f.write(jsondata)        
+            f.write(jsondata)
 
+    def despawn_object(self, o):
+        # TODO remove from batch too?
+        for tile in o.tiles:
+            tile.objects.discard(o)
+        self.objects.remove(o)
+        o.sprite.delete()
+        del o
+
+    def spawn_object(self, o):
+        self.objects.append(o)
+        self.hash_object(o)
+        if not sys.modules.has_key('gamelib.controller.headless'):
+            o.sprite.batch = self._object_sprite_batch
+
+    def spawn_player(self):
+
+        if self.player:
+            self.player.sprite.delete()
+
+        x = self.player_spawn % self.width * MAP_TILESIZE
+        y = self.player_spawn / self.width * MAP_TILESIZE
+        self.player = player.Player(x, y)         
+        self.hash_object(self.player)
+        if not sys.modules.has_key('gamelib.controller.headless'):
+            self.player.sprite.batch = self._object_sprite_batch
 
     def spawn_objects(self):
-        for i in range(5):
-            p = random.randrange(self.width), random.randrange(self.height)
-            tile = self.get(*p)
-            if tile.is_empty and self.up(tile).is_empty:
-                z = monsters.Zombie(p[0] * MAP_TILESIZE, p[1] * MAP_TILESIZE)
-                if not sys.modules.has_key('gamelib.controller.headless'):
-                    z.sprite.batch = self._object_sprite_batch
-                self.objects.append(z)
-                self.hash_object(z)
-                    
-        for i in range(5):
-            p = random.randrange(self.width), random.randrange(self.height)
-            tile = self.get(*p)
-            if tile.is_empty and self.up(tile).is_empty:
-                r = monsters.Robot(p[0] * MAP_TILESIZE, p[1] * MAP_TILESIZE)
-                if not sys.modules.has_key('gamelib.controller.headless'):
-                    r.sprite.batch = self._object_sprite_batch
-                self.objects.append(r)
-                self.hash_object(r)
+        for i, obj_type in self.object_spawn_list.iteritems():
+            x = i%self.width * MAP_TILESIZE
+            y = i/self.width * MAP_TILESIZE
+            o = INFO[obj_type](x, y)
+            self.spawn_object(o)
 
+    def despawn_objects(self):
 
+        for tile in self.grid:
+            tile.objects = set()
+        self.objects = []
 
-                
+        # player.objects = set()
+        # self.Player = None
 
-
+                        
     # tile lookup convinience methods        
     def get(self, x, y): 
         return self.grid[y*self.width + x]
@@ -226,6 +256,38 @@ class Map(object):
         if tile.type != type:
             tile.type = type
             self._vertex_list_dirty = True
+
+    def place(self, x, y, type):
+        """
+        Place an object on the map.
+        """
+
+        tile = self.get(x, y)
+        existing = self.object_spawn_list.get(y*self.width+x, None)
+
+        if not tile.is_empty:
+            return
+
+        if existing:
+            return
+
+        if type == PLAYER:
+            self.player_spawn = y*self.width+x
+            self.spawn_player()
+        else:
+            # add to spawn list
+            self.object_spawn_list[y*self.width+x] = type
+
+            # spawn for display on map
+            self.spawn_object(INFO[type](x=x*MAP_TILESIZE, y=y*MAP_TILESIZE))
+        
+
+
+    def unplace(self, x, y):
+        """
+        Remove an object from the map.
+        """
+        pass        
 
     
     def raycast(self, origin, target):
@@ -382,22 +444,43 @@ class Map(object):
 
             # add vertices and tex coords for this tile
             vertices += tile.quad
-            tex_coords += tile.tex(tile.type + TEX_MUT[tile.edges][0], TEX_MUT[tile.edges][1])
+
+            if tile.type not in [T_BLOCK_WOOD, T_BLOCK_CONCRETE, T_BLOCK_STEEL]:
+                tex_coords += tile.tex(tile.type, R_0)
+                continue
+
+            n_up = self.up(tile) if not self.is_bound(tile, E_TOP) else None
+            n_rg = self.right(tile) if not self.is_bound(tile, E_RIGHT) else None
+            n_dn = self.down(tile) if not self.is_bound(tile, E_BOTTOM) else None
+            n_lf = self.left(tile) if not self.is_bound(tile, E_LEFT) else None
+
+            edges = tile.edges
+
+            if n_up and n_up.type != tile.type:
+                edges |= E_TOP
+            if n_rg and n_rg.type != tile.type:
+                edges |= E_RIGHT
+            if n_dn and n_dn.type != tile.type:
+                edges |= E_BOTTOM
+            if n_lf and n_lf.type != tile.type:
+                edges |= E_LEFT
+
+            tex_coords += tile.tex(tile.type + TEX_MUT[edges][0], TEX_MUT[edges][1])
             
-            # add corner decals on stacked tiles
-            if not self.is_bound(tile, E_TOP | E_LEFT) and self.offset(tile, -1, 1).is_empty and self.left(tile).has_edge(E_TOP) and self.up(tile).has_edge(E_LEFT):
+            # add corner decals on stacked tiles            
+            if n_up and n_lf and n_up.type == tile.type and n_lf.type == tile.type and self.offset(tile, -1, 1).type != tile.type:
                 vertices += tile.quad
                 tex_coords += tile.tex(tile.type + 96, R_0)
 
-            if not self.is_bound(tile, E_TOP | E_RIGHT) and self.offset(tile, 1, 1).is_empty and self.right(tile).has_edge(E_TOP) and self.up(tile).has_edge(E_RIGHT):
+            if n_up and n_rg and n_up.type == tile.type and n_rg.type == tile.type and self.offset(tile, 1, 1).type != tile.type:
                 vertices += tile.quad
                 tex_coords += tile.tex(tile.type + 96, R_90)
-
-            if not self.is_bound(tile, E_BOTTOM | E_RIGHT) and self.offset(tile, 1, -1).is_empty and self.right(tile).has_edge(E_BOTTOM) and self.down(tile).has_edge(E_RIGHT):
+            
+            if n_dn and n_rg and n_dn.type == tile.type and n_rg.type == tile.type and self.offset(tile, 1, -1).type != tile.type:
                 vertices += tile.quad
                 tex_coords += tile.tex(tile.type + 96, R_180)                    
-
-            if not self.is_bound(tile, E_BOTTOM | E_LEFT) and self.offset(tile, -1, -1).is_empty and self.left(tile).has_edge(E_BOTTOM) and self.down(tile).has_edge(E_LEFT):
+            
+            if n_dn and n_lf and n_dn.type == tile.type and n_lf.type == tile.type and self.offset(tile, -1, -1).type != tile.type:
                 vertices += tile.quad
                 tex_coords += tile.tex(tile.type + 96, R_270)
                     
