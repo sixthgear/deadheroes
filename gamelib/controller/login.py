@@ -3,26 +3,31 @@ from pyglet.gl import *
 from pyglet.window import key
 from pyglet import clock
 from gamelib import collide
-
-# class FormFieldGroup()
+from gamelib.ui.widgets import TextWidget
 
 class Login(object):
     """
     The Login Screen
     """
 
-    def __init__(self, window):     
+    def __init__(self, window):
         self.window = window
-        self.music = None                
+        self.music = None
         self.keys = key.KeyStateHandler()
-        
         self.batch = pyglet.graphics.Batch()
+        self.focused = None
 
-        self.username = layout.IncrementalTextLayout(document.UnformattedDocument(), 200, 32, batch=self.batch)
-        self.username.x, self.username.y = 200, 200
-        # self.username.background_color = (255,255,255,255)
-        self.caret = caret.Caret(self.username, batch=self.batch)
-        self.window.push_handlers(self.caret)
+        pyglet.text.Label('Name:', x = 10, y = 100,
+            color=(0, 0, 0, 255), batch = self.batch),
+        pyglet.text.Label('Password:', x = 10, y = 60,
+            color=(0, 0, 0, 255), batch = self.batch)
+
+        self.widgets = {
+            'user': TextWidget('', 200, 100, self.window.width - 210, self.batch),
+            'password': TextWidget('', 200, 60, self.window.width - 210, self.batch)
+        }
+
+        self.set_focus(self.widgets['user'])
 
         self.init_gl()
 
@@ -34,34 +39,76 @@ class Login(object):
 
     def update(self, dt):
         pass
-    
+
     def on_draw(self):
-        self.window.clear()        
+        self.window.clear()
         self.batch.draw()
         # self.caret.draw()
         self.window.fps_display.draw()
 
-    def on_key_press(self, symbol, modifiers):
+    def on_text(self, text):
+        if text == '\r':
+            return
 
-        if symbol == key.ESCAPE:            
-            pyglet.app.exit()
+        if self.focused:
+            self.focused.on_text(text)
+
+    def on_text_motion(self, motion):
+        if self.focused:
+            self.focused.on_text_motion(motion)
+
+    def on_text_motion_select(self, motion):
+        if self.focused:
+            self.focused.on_text_motion_select(motion)
+
+    def on_key_press(self, symbol, modifiers):
+        if symbol == key.ENTER:
+            if self.focused == self.widgets['user']:
+                self.set_focus(self.widgets['password'])
+            else:
+                print self.widgets['user'].get_text()
+                print self.widgets['password'].get_text()
+            return
 
         if symbol == key.TAB:
-            pass
+            if self.focused == self.widgets['user']:
+                self.set_focus(self.widgets['password'])
+            else:
+                self.set_focus(self.widgets['user'])
+            return
 
-        if symbol == key.ENTER:
-            pass
+        if symbol == key.ESCAPE:
+            pyglet.app.exit()
 
-
-
-    def on_mouse_motion(self, x, y, dx, dy): 
-        pass
+    def on_mouse_motion(self, x, y, dx, dy):
+        for widget in self.widgets.values():
+            if widget.hit_test(x, y):
+                cursor = self.window.get_system_mouse_cursor('text')
+                self.window.set_mouse_cursor(cursor)
+                return
+        else:
+            self.window.set_mouse_cursor(None)
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
-        pass
+        if self.focused:
+            self.focused.on_mouse_drag(x, y, dx, dy, buttons, modifiers)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        pass
-                        
-    def on_mouse_release(self, x, y, button, modifiers):
-        pass    
+        for widget in self.widgets.values():
+            if widget.hit_test(x, y):
+                self.set_focus(widget)
+                widget.on_mouse_press(x, y, button, modifiers)
+                return
+        else:
+            self.set_focus(None)
+
+    def set_focus(self, widget):
+        if self.focused:
+            self.focused.lose_focus()
+
+        self.focused = widget
+
+        if not self.focused:
+            return
+
+        self.focused.focus()
