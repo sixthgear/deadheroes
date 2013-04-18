@@ -4,8 +4,15 @@ from pyglet.window import key
 from pyglet import clock
 from gamelib import collide
 from gamelib.ui.widgets import TextWidget
+from gamelib.util_hax import defer
 
-class Login(pyglet.event.EventDispatcher):
+STATUS = {
+    "login" : "Status: Please Login",
+    "invalid": "Status: Password Incorrect",
+    "down": "Status: Unable to reach server"
+}
+
+class Login(object):
     """
     The Login Screen
     """
@@ -17,8 +24,11 @@ class Login(pyglet.event.EventDispatcher):
         self.batch = pyglet.graphics.Batch()
         self.focused = None
 
+        self.status =  pyglet.text.Label(STATUS['login'], x = 10, y = 140,
+            color=(0, 0, 0, 255), batch = self.batch)
+
         pyglet.text.Label('Name:', x = 10, y = 100,
-            color=(0, 0, 0, 255), batch = self.batch),
+            color=(0, 0, 0, 255), batch = self.batch)
         pyglet.text.Label('Password:', x = 10, y = 60,
             color=(0, 0, 0, 255), batch = self.batch)
 
@@ -67,7 +77,8 @@ class Login(pyglet.event.EventDispatcher):
             else:
                 user = self.widgets['user'].get_text()
                 password = self.widgets['password'].get_text()
-                self.dispatch_event('on_login', user, password)
+
+                defer(self.window.on_login, user, password)
             return
 
         if symbol == key.TAB:
@@ -113,4 +124,5 @@ class Login(pyglet.event.EventDispatcher):
 
         self.focused.focus()
 
-Login.register_event_type('on_login')
+    def on_login_failure(self):
+        self.status.text = STATUS['invalid']

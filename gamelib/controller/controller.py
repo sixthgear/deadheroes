@@ -30,7 +30,7 @@ class Controller(pyglet.window.Window):
         self.fps_display = pyglet.clock.ClockDisplay()
         self.show_fps = True
         self.timer = fixedsteploop.FixedStepLoop(self.update, self.DT, self.DT*2)
-        self.session = Session()
+        self.session = Session(self)
 
     def switch(self, name, state=None):
 
@@ -52,12 +52,19 @@ class Controller(pyglet.window.Window):
 
     def login(self, dt=0.0):
         login_screen = login.Login(window=self)
-        login_screen.push_handlers(on_login = self.on_login)
         self.switch('login', login_screen)
 
     def on_login(self, user, password):
-        print "user: %s password: %s" % (user, password)
+        self.session.login(user, password)
         self.edit(dt = 0.0)
+
+    def on_logged_in(self, response):
+        #self.edit(dt = 0.0)
+        print response
+
+    def on_login_failure(self, response):
+        if self.states.has_key('login'):
+            self.states['login'].on_login_failure()
 
     def edit(self, dt=0.0):
         if self.states.has_key('edit'):

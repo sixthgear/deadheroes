@@ -39,3 +39,4 @@ work
 .DS_Store
 mapdata.json
 *.rep
+*.swp
