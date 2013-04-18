@@ -6,7 +6,7 @@ import random
 import array
 import base64
 
-from gamelib.controller import game
+from gamelib.controller import play
 from gamelib import vector
 from gamelib import map
 from gamelib.objects import player
@@ -16,7 +16,7 @@ if not sys.modules.has_key('gamelib.controller.headless'):
     from pyglet.window import key
     from pyglet import clock
 
-class Replay(game.Game):
+class Replay(play.Game):
     """
     The Game class is THE MAN.
     """
