@@ -42,8 +42,7 @@ class Controller(pyglet.window.Window):
         
         self.current_state = state
         self.push_handlers(self.current_state)
-        self.push_handlers(self.current_state.keys)
-        
+        self.push_handlers(self.current_state.keys)        
 
 
     def login(self, dt=0.0):
@@ -53,7 +52,7 @@ class Controller(pyglet.window.Window):
     def edit(self, dt=0.0):
         if self.states.has_key('edit'):
             self.states['edit'].map.init_state()
-            
+
         self.switch('edit', edit.Editor(window=self))
 
 

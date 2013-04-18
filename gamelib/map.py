@@ -305,12 +305,12 @@ class Map(object):
 
     def tiles_from_object(self, obj):
         # determine a range of x,y tile indices to iterate through. For objects smaller than the size of
-        # the grid, this will be at most 4 cells.        
-        x0, y0 = int(obj.pos.x) / MAP_TILESIZE, int(obj.pos.y) / MAP_TILESIZE
+        # the grid, this will be at most 4 cells.
+        x0, y0 = int(obj.pos.x) / MAP_TILESIZE, int(obj.pos.y-1) / MAP_TILESIZE
         x1, y1 = int(obj.pos.x + obj.width) / MAP_TILESIZE + 1, int(obj.pos.y + obj.height) / MAP_TILESIZE + 1
         for y in range(y0, y1):
             for x in range(x0,x1):
-                yield self.get(x, y)                
+                yield self.get(x, y)
 
     def hash_object(self, o):
         
@@ -345,15 +345,15 @@ class Map(object):
         """
         Collide one object against the map.
         """
-
+        
         # assume this object is falling unless we resolve a ground collision
         on_ground = False
 
         # store a list of intersecting tiles to return
         collisions = []
-        
-        for tile in self.tiles_from_object(obj):
-
+        # if obj.pos.y in [128, 160]: print 'debuggining', obj.pos.y
+        for tile in self.tiles_from_object(obj):            
+            # if obj.pos.y in [128, 160]: print tile.x, tile.y
             tpos = vector.Vec2d(tile.x*MAP_TILESIZE, tile.y*MAP_TILESIZE)
         
             # do nothing for empty tiles
@@ -394,6 +394,7 @@ class Map(object):
                 # calculate resolution, if we project out the top, inform the object it's now on the ground
                 if projected_edge[1] == E_TOP:
                     obj.pos.y += projected_edge[0]
+                    # obj.pos0.y = obj.pos.y
                     on_ground = True            
                 elif projected_edge[1] == E_RIGHT:
                     obj.pos.x += projected_edge[0]                        
@@ -402,11 +403,15 @@ class Map(object):
                 elif projected_edge[1] == E_LEFT:
                     obj.pos.x -= projected_edge[0]
 
+        
         # all done        
-        if on_ground:
+        if on_ground:                        
             obj.ground()            
-        else:
+        else:                        
             obj.fall()            
+
+        
+
 
         return collisions
         
@@ -509,6 +514,7 @@ class Map(object):
             return
 
         tile = self.get(x, y)
+        print tile.x, tile.y, tile.edges
         # can't highlight boundaries
         if self.is_bound(tile):
             self._highlight.enabled = False

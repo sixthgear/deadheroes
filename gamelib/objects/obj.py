@@ -92,8 +92,8 @@ class GameObject(object):
         """
         Perform Verlet integration
         """
-        p = self.pos        
-        self.pos = self.pos * (1.0 + dampening) - self.pos0 * dampening + self.acc * dt2
-        # self.pos.x = self.pos.x * (1.0 + dampening) - self.pos0.x * dampening + self.acc.x * dt2
-        # self.pos.y = self.pos.y * (1.0 + dampening) - self.pos0.y * dampening + self.acc.y * dt2
+        # print self.pos0.y, self.pos.y, '(%f)' % self.acc.y, '->',
+        p = self.pos
+        self.pos = self.pos * (1.0 + dampening) - self.pos0 * dampening + self.acc * dt2        
         self.pos0 = p
+        # print self.pos.y

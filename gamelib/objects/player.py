@@ -22,12 +22,14 @@ class Player(obj.GameObject):
         self.jump_timer = 0
         self.jump_held = False
 
-        frames = obj.sprites[0:7]
+        frames = obj.sprites[0:9]
         for f in frames:
             f.anchor_y = self.height / 2
         self.animation = {}
         self.animation['idle'] = frames[0]
         self.animation['run'] = image.Animation.from_image_sequence(frames[1:7], 0.12)
+        self.animation['jump'] = frames[7]
+        self.animation['fall'] = frames[8]
         self.anim = self.animation['idle']
         self.sprite.image = self.anim
 
@@ -35,17 +37,26 @@ class Player(obj.GameObject):
         super(Player, self).update(dt2)
 
         vel = self.pos - self.pos0
-        if abs(vel.x) < 2 and abs(vel.y) < 2:
+
+
+        if self.air == obj.ON_GROUND and abs(vel.x) < 2:
             if self.anim != self.animation['idle']:
                 self.anim = self.animation['idle']
                 self.sprite.image = self.anim.get_transform(flip_x=(self.facing==1))
-                # self.face(self.facing)
-                
-        else:
+                # self.face(self.facing)                
+        elif self.air == obj.ON_GROUND:
             if self.anim != self.animation['run']:
                 self.anim = self.animation['run']
                 self.sprite.image = self.anim.get_transform(flip_x=(self.facing==1))
                 # self.face(self.facing)
+        elif self.air == obj.JUMPING:
+            if self.anim != self.animation['jump']:
+                self.anim = self.animation['jump']
+                self.sprite.image = self.anim.get_transform(flip_x=(self.facing==1))
+        elif self.air == obj.FALLING:
+            if self.anim != self.animation['fall']:
+                self.anim = self.animation['fall']
+                self.sprite.image = self.anim.get_transform(flip_x=(self.facing==1))
 
 
     def input(self, controls):
@@ -60,7 +71,7 @@ class Player(obj.GameObject):
             self.face(0)
             self.acc.x = 2000
             if self.air != obj.ON_GROUND:
-                self.acc.x *= 0.75                
+                self.acc.x *= 0.75
         else:
             self.acc.x = 0
 
@@ -89,9 +100,9 @@ class Player(obj.GameObject):
                 self.pos.y += self.jump_distance
                 self.jump_distance *= 0.95
 
-        # give 10 ticks of grace time that jump can be hit before a platform is touched
+        # give 5 ticks of grace time that jump can be hit before a platform is touched
         elif self.air == obj.FALLING and not self.jump_held and self.jump_timer == 0:            
-            self.jump_timer = 30
+            self.jump_timer = 5
 
         elif self.jump_held and self.jump_timer > 0:
             self.jump_timer -= 1            
@@ -105,4 +116,4 @@ class Player(obj.GameObject):
         self.jump_held = False        
         self.jump_timer = 0
         if self.air == obj.JUMPING:
-            self.air == obj.FALLING
+            self.air = obj.FALLING
