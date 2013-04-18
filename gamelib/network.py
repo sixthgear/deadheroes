@@ -1,11 +1,25 @@
 import urlparse
 import requests
+import json
 
 import pyglet
 
 urls = {
 	"login": "register/",
+	"player": "player/",
+	"list_dungeons": "dungeons/",
+	"dungeon": "dungeon/"
 }
+
+def SessionCheck(func):
+
+	def wrapper(self, *args, **kwargs):
+		if self.is_logged_in():
+			return func(self, *args, **kwargs)
+		else:
+			self.dispatch_event('on_no_connection')
+
+	return wrapper
 
 class Session(pyglet.event.EventDispatcher):
 	def __init__(self, server = 'http://localhost:8000'):
@@ -30,26 +44,59 @@ class Session(pyglet.event.EventDispatcher):
 			self.dispatch_event('on_connected')
 			return
 
+		self.http_session = None
 		self.dispatch_event('on_login_failure', resp.text)
-
 
 	def is_logged_in(self):
 		return self.http_session != None
 
+	@SessionCheck
 	def dungeons(self):
-		pass
+		url = urlparse.urljoin(self.server, urls['list_dungeons'])
 
+		try:
+			resp = self.http_session.get(url)
+		except requests.exceptions.RequestException:
+			return None
+
+		if resp.status_code == requests.codes.ok:
+			try:
+				return json.loads(resp.text)
+			except AttributeError:
+				return None
+		else:
+			return None
+
+	@SessionCheck
 	def get_dungeon(self, dungeon_id):
+		frag = urlparse.urljoin(urls['dungeon'], dungeon_id)
+		url = urlparse.urljoin(self.server, frag)
+
+		try:
+			resp = self.http_session.get(url)
+		except requests.exceptions.RequestException:
+			return None
+
+		if resp.status_code == requests.codes.ok:
+			try:
+				return json.loads(resp.text)
+			except AttributeError:
+				return None
+
+		return None
+
+	@SessionCheck
+	def upload_dungeon(self, dungeon):
 		pass
 
-	def upload_dungeon(self, dugeon):
-		pass
-
+	@SessionCheck
 	def get_replay(self, replay_id):
 		pass
 
+	@SessionCheck
 	def upload_replay(self, replay):
 		pass
+
 
 Session.register_event_type('on_connected')
 Session.register_event_type('on_no_connection')
