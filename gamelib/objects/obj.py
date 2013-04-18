@@ -38,12 +38,13 @@ class GameObject(object):
         self.pos = vector.Vec2d(x, y)
         self.pos0 = vector.Vec2d(x, y)
         self.acc = vector.Vec2d(0, 0)        
-        self.facing = 1
+        self.facing = 0
         self.air = FALLING
         self.alive = True
         self.tiles = set()
+        self.anim = False
 
-        if not sys.modules.has_key('gamelib.controller.headless'):            
+        if not sys.modules.has_key('gamelib.controller.headless'):
             self.sprite = sprite.Sprite(sprites[self.tex_index])
             self.sprite.image.anchor_x = self.width / 2 
             self.sprite.image.anchor_y = self.height / 2
@@ -61,7 +62,12 @@ class GameObject(object):
     def face(self, facing):        
         if facing != self.facing:
             self.facing = facing
-            i = sprites[self.tex_index].get_transform(flip_x=(facing==1))            
+
+            if self.anim:
+                i = self.anim.get_transform(flip_x=(facing==1))
+            else:
+                i = sprites[self.tex_index].get_transform(flip_x=(facing==1))
+
             self.sprite.image = i
 
     def update(self, dt2):

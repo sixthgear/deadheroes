@@ -1,6 +1,7 @@
 import sys
 import math
 from gamelib.objects import obj
+from pyglet import image
 
 KEY_LEFT            = 0x01
 KEY_RIGHT           = 0x02
@@ -20,6 +21,32 @@ class Player(obj.GameObject):
         self.jump_distance = 0
         self.jump_timer = 0
         self.jump_held = False
+
+        frames = obj.sprites[0:7]
+        for f in frames:
+            f.anchor_y = self.height / 2
+        self.animation = {}
+        self.animation['idle'] = frames[0]
+        self.animation['run'] = image.Animation.from_image_sequence(frames[1:7], 0.12)
+        self.anim = self.animation['idle']
+        self.sprite.image = self.anim
+
+    def update(self, dt2):
+        super(Player, self).update(dt2)
+
+        vel = self.pos - self.pos0
+        if abs(vel.x) < 2 and abs(vel.y) < 2:
+            if self.anim != self.animation['idle']:
+                self.anim = self.animation['idle']
+                self.sprite.image = self.anim.get_transform(flip_x=(self.facing==1))
+                # self.face(self.facing)
+                
+        else:
+            if self.anim != self.animation['run']:
+                self.anim = self.animation['run']
+                self.sprite.image = self.anim.get_transform(flip_x=(self.facing==1))
+                # self.face(self.facing)
+
 
     def input(self, controls):
 
