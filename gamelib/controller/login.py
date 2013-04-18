@@ -5,7 +5,7 @@ from pyglet import clock
 from gamelib import collide
 from gamelib.ui.widgets import TextWidget
 
-class Login(object):
+class Login(pyglet.event.EventDispatcher):
     """
     The Login Screen
     """
@@ -43,7 +43,6 @@ class Login(object):
     def on_draw(self):
         self.window.clear()
         self.batch.draw()
-        # self.caret.draw()
         self.window.fps_display.draw()
 
     def on_text(self, text):
@@ -66,9 +65,9 @@ class Login(object):
             if self.focused == self.widgets['user']:
                 self.set_focus(self.widgets['password'])
             else:
-                print self.widgets['user'].get_text()
-                print self.widgets['password'].get_text()
-                pyglet.clock.schedule_once(self.window.edit, 0.0)
+                user = self.widgets['user'].get_text()
+                password = self.widgets['password'].get_text()
+                self.dispatch_event('on_login', user, password)
             return
 
         if symbol == key.TAB:
@@ -113,3 +112,5 @@ class Login(object):
             return
 
         self.focused.focus()
+
+Login.register_event_type('on_login')
