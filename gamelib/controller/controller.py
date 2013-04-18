@@ -23,7 +23,7 @@ class Controller(pyglet.window.Window):
 
     def __init__(self):
         super(Controller, self).__init__(**self.properties)
-        self.set_vsync(False)        
+        self.set_vsync(True)        
         self.states = {}
         self.current_state = None
         self.fps_display = pyglet.clock.ClockDisplay()        

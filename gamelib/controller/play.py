@@ -6,6 +6,7 @@ import array
 from gamelib import vector
 from gamelib import map
 from gamelib.objects import player
+from gamelib.ui import hud_game
 
 if not sys.modules.has_key('gamelib.controller.headless'):
     from pyglet.gl import *
@@ -23,6 +24,7 @@ class Game(object):
         self.window = window
         self.music = None
         self.keys = key.KeyStateHandler()        
+        self.hud = hud_game.HUD()
         self.init_gl()
                 
         self.init_state()
@@ -125,7 +127,8 @@ class Game(object):
         """
         self.window.clear()
         self.map.draw()
-        self.map.player.sprite.draw()        
+        self.map.player.sprite.draw()
+        self.hud.draw()
         # self.window.fps_display.draw()
 
     def on_key_press(self, symbol, modifiers):
