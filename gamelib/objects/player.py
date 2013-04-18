@@ -26,14 +26,14 @@ class Player(obj.GameObject):
         self.fall_timer = self.grace_jump_after
         self.jump_held = False
 
-        frames = obj.sprites[0:9]
+        frames = obj.sprites[0:16]
         for f in frames:
             f.anchor_y = self.height / 2
         self.animation = {}
         self.animation['idle'] = frames[0]
-        self.animation['run'] = image.Animation.from_image_sequence(frames[1:7], 0.12)
-        self.animation['jump'] = frames[7]
-        self.animation['fall'] = frames[8]
+        self.animation['run'] = image.Animation.from_image_sequence(frames[1:13], 0.06)
+        self.animation['jump'] = frames[14]
+        self.animation['fall'] = frames[15]
         self.anim = self.animation['idle']
         self.sprite.image = self.anim
 

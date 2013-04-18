@@ -47,7 +47,6 @@ T_BLOCK_WOOD            = 0x01
 T_BLOCK_CONCRETE        = 0x02
 T_BLOCK_STEEL           = 0x03
 
-
 # texture mutators for different edge congifurations.
 # the first element of the tuple represents the texture index offset to add to the base index
 # the second element of the tuple specifies if the texture should be rotated
