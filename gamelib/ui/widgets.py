@@ -28,6 +28,7 @@ class TextWidget(object):
         pad = 2
         self.rectangle = Rectangle(x - pad, y - pad,
                                    x + width + pad, y + height + pad, batch)
+        self.lose_focus()
 
     def hit_test(self, x, y):
         return (0 < x - self.layout.x < self.layout.width and

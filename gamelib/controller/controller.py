@@ -2,7 +2,7 @@ from pyglet.gl import *
 from pyglet import clock
 from pyglet.window import key
 from gamelib import fixedsteploop
-
+from gamelib.network import Session
 import copy
 import edit
 import play
@@ -28,7 +28,8 @@ class Controller(pyglet.window.Window):
         self.current_state = None
         self.fps_display = pyglet.clock.ClockDisplay()        
         self.timer = fixedsteploop.FixedStepLoop(self.update, self.DT, self.DT*2)
-                
+        self.session = Session()
+
     def switch(self, name, state=None):
 
         if self.current_state:
@@ -46,8 +47,13 @@ class Controller(pyglet.window.Window):
 
 
     def login(self, dt=0.0):
-        self.switch('login', login.Login(window=self))
+        login_screen = login.Login(window=self)
+        login_screen.push_handlers(on_login = self.on_login)
+        self.switch('login', login_screen)
 
+    def on_login(self, user, password):
+        print "user: %s password: %s" % (user, password)
+        self.edit(dt = 0.0)
 
     def edit(self, dt=0.0):
         if self.states.has_key('edit'):
