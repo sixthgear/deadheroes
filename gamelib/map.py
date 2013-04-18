@@ -111,6 +111,14 @@ class Map(object):
 
         self.spawn_player()
 
+    def init_state(self):
+        self.despawn_objects()
+        self._object_sprite_batch = pyglet.graphics.Batch()
+        self.spawn_objects()
+        self.spawn_player()
+
+
+
     @classmethod
     def load(cls, map_id):
         """
@@ -128,7 +136,6 @@ class Map(object):
                 m.object_spawn_list[int(key)] = o
 
             m.player_spawn = data['player_spawn']
-
             m.spawn_player()
             m.spawn_objects()
 
@@ -150,7 +157,7 @@ class Map(object):
             f.write(jsondata)
 
     def despawn_object(self, o):
-        # TODO remove from batch too?
+        # TODO remove from batch too?        
         for tile in o.tiles:
             tile.objects.discard(o)
         self.objects.remove(o)
@@ -165,9 +172,9 @@ class Map(object):
 
     def spawn_player(self):
 
-        if self.player:
+        if self.player and self.player.sprite:
             self.player.sprite.delete()
-
+            
         x = self.player_spawn % self.width * MAP_TILESIZE
         y = self.player_spawn / self.width * MAP_TILESIZE
         self.player = player.Player(x, y)         
@@ -328,6 +335,8 @@ class Map(object):
                     continue
                 if collide.AABB_to_AABB(o.pos, o.width, o.height, obj.pos, obj.width, obj.height):
                     collisions.add(o)
+                    # resolve
+
 
 
         return collisions

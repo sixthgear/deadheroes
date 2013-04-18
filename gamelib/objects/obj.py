@@ -25,10 +25,11 @@ if not sys.modules.has_key('gamelib.controller.headless'):
     
 class GameObject(object):
 
+    tile_width = 1
+    tile_height = 1        
     tex = None
-    dampening = 1.0
     tex_index = 0
-    tex_anchor = 2
+    dampening = 1.0
 
     def __init__(self, x, y):    
         
@@ -58,11 +59,7 @@ class GameObject(object):
     def face(self, facing):        
         if facing != self.facing:
             self.facing = facing
-            i = sprites[self.tex_index].get_transform(flip_x=(facing==0))
-            # if facing:
-            #     i.anchor_x = self.tex_anchor
-            # else:
-            #     i.anchor_x = 16-self.tex_anchor
+            i = sprites[self.tex_index].get_transform(flip_x=(facing==0))            
             self.sprite.image = i
 
     def update(self, dt2):
@@ -71,8 +68,17 @@ class GameObject(object):
         if not sys.modules.has_key('gamelib.controller.headless'):
             self.sprite.set_position(self.pos.x+ self.width/2, self.pos.y+self.height/2)
                 
-    def collide(self, collisions):
+    def collide_obj(self, o):
         pass
+
+    def collide_map(self, t):
+        pass        
+
+    def ai(self, map, player):
+        pass
+
+    def die(self):
+        self.alive = False        
 
     def integrate(self, t, dt2, dampening=1.0):
         """

@@ -52,9 +52,8 @@ class Controller(pyglet.window.Window):
 
     def edit(self, dt=0.0):
         if self.states.has_key('edit'):
-            self.states['edit'].map.despawn_objects()
-            self.states['edit'].map.spawn_objects()
-            self.states['edit'].map.spawn_player()
+            self.states['edit'].map.init_state()
+            
         self.switch('edit', edit.Editor(window=self))
 
 

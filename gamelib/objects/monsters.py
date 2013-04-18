@@ -32,11 +32,12 @@ class Zombie(obj.GameObject):
 
             if random.random() < .1 and self.air == obj.ON_GROUND:
                 self.pos0.y = self.pos.y - 12
-        
+    
+    def collide_obj(self, o):
+        o.die()
     
 class Robot(obj.GameObject):
-
-    collide = obj.COL_AABB
+    
     width = 24
     height = 39
     dampening = 0.90
@@ -59,8 +60,8 @@ class Robot(obj.GameObject):
         else:
             self.acc.x *= 0.8
         
-    def collide(self, collisions):
-        pass
+    def collide_obj(self, o):
+        o.die()
 
 
 class RocketLauncher(obj.GameObject):
@@ -83,9 +84,7 @@ class RocketLauncher(obj.GameObject):
             self.rocket = Rocket(self.pos.x, self.pos.y, self)
             self.rocket.acc = delta.normal * 500
             map.spawn_object(self.rocket)
-        
-    def collide(self, collisions):
-        pass
+    
 
     def rocket_death(self):        
         self.rocket = None
@@ -103,10 +102,15 @@ class Rocket(obj.GameObject):
     def __init__(self, x=32, y=32, launcher=None):
         super(Rocket, self).__init__(x, y)
         self.launcher = launcher
-                
-    def collide(self, collisions):
-        self.alive = False
+
+    def collide_obj(self, o):
+        o.die()
+        self.die()
         self.launcher.rocket_death()
+
+    def collide_map(self, t):
+        self.die()
+        self.launcher.rocket_death()        
 
     def update(self, dt2):
         vel = (self.pos - self.pos0)

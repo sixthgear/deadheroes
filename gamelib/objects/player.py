@@ -9,12 +9,11 @@ KEY_JUMP            = 0x04
 class Player(obj.GameObject):
 
     collide = obj.COL_AABB
+    tex_index = 0
     width = 20
     height = 43
     dampening = 0.9
-    tex_index = 0
-    tex_anchor = 7
-
+    
     def __init__(self, x=32, y=32):
         super(Player, self).__init__(x, y)
         self.acc.y = -2000        

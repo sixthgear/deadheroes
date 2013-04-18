@@ -62,6 +62,12 @@ class Game(object):
         Sample input, integrate game physics, and resolve collisions.
         """
         # sample input
+
+        if not self.map.player.alive:
+            print 'DEAD!'
+            pyglet.clock.schedule_once(self.window.edit, 0.0)
+            return
+
         controls = self.sample_input()        
         self.map.player.input(controls)        
         self.map.player.update(dt2)
@@ -97,13 +103,11 @@ class Game(object):
         self.map.collide_geometry(self.map.player)
 
         for c in self.map.collide_objects(self.map.player):
-            print 'DEAD!'
-            pyglet.clock.schedule_once(self.window.edit, 0.0)
-            return
+            c.collide_obj(self.map.player)
         
         for o in self.map.objects:
             for c in self.map.collide_geometry(o):
-                o.collide(c)
+                o.collide_map(c)
                 
         self.map.hash_object(self.map.player)
 
@@ -111,7 +115,9 @@ class Game(object):
             self.map.hash_object(o)
 
         for o in [o for o in self.map.objects if not o.alive]:
-            self.map.despawn_object(o)    
+            self.map.despawn_object(o)
+
+        self.map.objects = [o for o in self.map.objects if o.alive]
     
     def on_draw(self):
         """
