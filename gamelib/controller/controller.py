@@ -111,6 +111,6 @@ class Controller(pyglet.window.Window):
         Setup the environment and run with it.
         """            
         self.setup_gl()
-        # self.login()
-        self.edit()
+        self.login()
+        # self.edit()
         pyglet.app.run()

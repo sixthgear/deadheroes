@@ -68,6 +68,7 @@ class Login(object):
             else:
                 print self.widgets['user'].get_text()
                 print self.widgets['password'].get_text()
+                pyglet.clock.schedule_once(self.window.edit, 0.0)
             return
 
         if symbol == key.TAB:
