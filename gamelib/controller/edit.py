@@ -76,6 +76,13 @@ class Editor(object):
         if symbol == key._3:
             self.mode = MODE_TILE
             self.selected_tile = map.T_BLOCK_STEEL
+        if symbol == key._4:
+            self.mode = MODE_TILE
+            self.selected_tile = map.T_SPIKES
+        if symbol == key._5:
+            self.mode = MODE_TILE
+            self.selected_tile = map.T_LAVA
+
         if symbol == key.Q:
             self.mode = MODE_OBJ
             self.selected_object = PLAYER
@@ -94,6 +101,9 @@ class Editor(object):
         if symbol == key.Y:
             self.mode = MODE_OBJ
             self.selected_object = CHEST
+        if symbol == key.Y:
+            self.mode = MODE_OBJ
+            self.selected_object = ANVIL            
 
 
 

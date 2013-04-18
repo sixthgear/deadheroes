@@ -46,6 +46,8 @@ T_EMPTY                 = 0x00
 T_BLOCK_WOOD            = 0x01
 T_BLOCK_CONCRETE        = 0x02
 T_BLOCK_STEEL           = 0x03
+T_SPIKES                = 0x04
+T_LAVA                  = 0x05
 
 # texture mutators for different edge congifurations.
 # the first element of the tuple represents the texture index offset to add to the base index

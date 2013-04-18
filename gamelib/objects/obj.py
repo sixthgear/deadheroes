@@ -60,6 +60,10 @@ class GameObject(object):
                 self.sprite.image.anchor_y = self.height / 2
                 self.sprite.set_position(self.pos.x+ self.width/2, self.pos.y+self.height/2)
 
+    @property
+    def vel(self):
+        return self.pos0 - self.pos
+
     def ground(self):
         self.air = ON_GROUND        
         self.acc.y = 0

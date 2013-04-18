@@ -7,8 +7,8 @@ from gamelib.objects import obj
 class Zombie(obj.GameObject):
 
     tex_index       = 0x10
-    width           = 20
-    height          = 43
+    width           = 18
+    height          = 40
     dampening       = 0.90
     
     def __init__(self, x=32, y=32):
@@ -33,8 +33,8 @@ class Zombie(obj.GameObject):
 class Robot(obj.GameObject):
     
     tex_index       = 0x20
-    width           = 24
-    height          = 39
+    width           = 18
+    height          = 35
     dampening       = 0.90
 
     def __init__(self, x=32, y=32):
@@ -84,8 +84,8 @@ class RocketLauncher(obj.GameObject):
 class Rocket(obj.GameObject):
 
     tex_index       = 0x31
-    width           = 9
-    height          = 9
+    width           = 7
+    height          = 7
     dampening       = 0.99
     
     def __init__(self, x=32, y=32, launcher=None):

@@ -10,8 +10,8 @@ KEY_JUMP            = 0x04
 class Player(obj.GameObject):
     
     tex_index       = 0x00
-    width           = 20
-    height          = 43
+    width           = 12
+    height          = 40
     dampening       = 0.9
 
     grace_jump_before = 10
@@ -40,10 +40,7 @@ class Player(obj.GameObject):
     def update(self, dt2):
         super(Player, self).update(dt2)
 
-        vel = self.pos - self.pos0
-
-
-        if self.air == obj.ON_GROUND and abs(vel.x) < 2:
+        if self.air == obj.ON_GROUND and abs(self.vel.x) < 2:
             if self.anim != self.animation['idle']:
                 self.anim = self.animation['idle']
                 self.sprite.image = self.anim.get_transform(flip_x=(self.facing==1))
@@ -66,6 +63,8 @@ class Player(obj.GameObject):
 
     def input(self, controls):
 
+        
+
         if controls & KEY_LEFT:
             self.face(1)
             self.acc.x = -2000
@@ -78,7 +77,7 @@ class Player(obj.GameObject):
             if self.air != obj.ON_GROUND:
                 self.acc.x *= 0.75
         else:
-            self.acc.x = 0
+            self.acc.x = self.vel.x * 500
 
         if controls & KEY_JUMP:
 
@@ -92,8 +91,8 @@ class Player(obj.GameObject):
 
             # jump held, add extra height
             elif self.air == obj.JUMPING and self.jump_held:
-                vel = self.pos0 - self.pos
-                if vel.y >= 0:
+                
+                if self.vel.y >= 0:
                     self.air = obj.FALLING
                     # print 'now falling'
                 else:

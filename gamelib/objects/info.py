@@ -7,6 +7,7 @@ LAUNCHER        = 0x03
 MISSILE         = 0x04
 DOOR            = 0x80
 CHEST           = 0x82
+ANVIL           = 0x70
 
 INFO = {
     PLAYER:     player.Player,
@@ -16,4 +17,5 @@ INFO = {
     MISSILE:    monsters.Rocket,
     DOOR:       devices.Door,
     CHEST:      devices.Chest,
+    ANVIL:      devices.Anvil,
 }

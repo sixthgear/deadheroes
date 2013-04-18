@@ -8,6 +8,23 @@ class Door(obj.GameObject):
     tile_height     = 2
     
 class Chest(obj.GameObject):
+
     tex_index       = 0x72
     width           = 30
     height          = 27
+
+    def collide_obj(self, o):
+        self.sprite.image = obj.sprites[0x73]
+        self.sprite.image.anchor_x = self.width / 2 
+        self.sprite.image.anchor_y = self.height / 2
+        self.sprite.set_position(self.pos.x+ self.width/2, self.pos.y+self.height/2)
+
+class Anvil(obj.GameObject):
+
+    tex_index       = 0x60
+    width           = 32
+    height          = 25
+
+    def __init__(self, x, y):
+        super(Anvil, self).__init__(x, y)
+        self.acc.y = -2000         
