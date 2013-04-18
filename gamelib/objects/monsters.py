@@ -4,19 +4,13 @@ import math
 
 from gamelib.objects import obj
 
-ON_GROUND   = 0x00
-JUMPING     = 0x01
-FALLING     = 0x02
-
 class Zombie(obj.GameObject):
 
-    # collide = obj.COL_AABB
-    width = 20
-    height = 43
-    dampening = 0.90
-    tex_index = 1
-    tex_anchor = 2
-
+    tex_index       = 0x10
+    width           = 20
+    height          = 43
+    dampening       = 0.90
+    
     def __init__(self, x=32, y=32):
         super(Zombie, self).__init__(x, y)
         self.acc.y = -2000                
@@ -38,11 +32,10 @@ class Zombie(obj.GameObject):
     
 class Robot(obj.GameObject):
     
-    width = 24
-    height = 39
-    dampening = 0.90
-    tex_index = 2
-    tex_anchor = 4
+    tex_index       = 0x20
+    width           = 24
+    height          = 39
+    dampening       = 0.90
 
     def __init__(self, x=32, y=32):
         super(Robot, self).__init__(x, y)
@@ -52,7 +45,7 @@ class Robot(obj.GameObject):
         delta = self.pos - player.pos
         self.face(1 if (self.pos - self.pos0).x < 0 else 0)
 
-        if self.air == ON_GROUND and abs(delta.y) < 32:
+        if self.air == obj.ON_GROUND and abs(delta.y) < 32:
             if delta.x > 0:
                 self.acc.x = -1800
             else:
@@ -65,14 +58,12 @@ class Robot(obj.GameObject):
 
 
 class RocketLauncher(obj.GameObject):
-
-    # collide = obj.COL_AABB
-    width = 26
-    height = 36
-    dampening = 0.0
-    tex_index = 3
-    tex_anchor = 0
-
+    
+    tex_index       = 0x30
+    width           = 26
+    height          = 36
+    dampening       = 0.0
+    
     def __init__(self, x=32, y=32):
         super(RocketLauncher, self).__init__(x, y)        
         self.rocket = None
@@ -92,13 +83,11 @@ class RocketLauncher(obj.GameObject):
 
 class Rocket(obj.GameObject):
 
-    # collide = obj.COL_AABB
-    width = 9
-    height = 9
-    dampening = 0.99
-    tex_index = 4
-    tex_anchor = 0
-
+    tex_index       = 0x31
+    width           = 9
+    height          = 9
+    dampening       = 0.99
+    
     def __init__(self, x=32, y=32, launcher=None):
         super(Rocket, self).__init__(x, y)
         self.launcher = launcher

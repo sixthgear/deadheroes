@@ -25,11 +25,13 @@ if not sys.modules.has_key('gamelib.controller.headless'):
     
 class GameObject(object):
 
-    tile_width = 1
-    tile_height = 1        
-    tex = None
-    tex_index = 0
-    dampening = 1.0
+    tex             = None
+    tex_index       = 0x00
+    width           = 0
+    height          = 0
+    tile_width      = 1
+    tile_height     = 1            
+    dampening       = 1.0
 
     def __init__(self, x, y):    
         
@@ -59,7 +61,7 @@ class GameObject(object):
     def face(self, facing):        
         if facing != self.facing:
             self.facing = facing
-            i = sprites[self.tex_index].get_transform(flip_x=(facing==0))            
+            i = sprites[self.tex_index].get_transform(flip_x=(facing==1))            
             self.sprite.image = i
 
     def update(self, dt2):
