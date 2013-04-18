@@ -72,7 +72,7 @@ class RocketLauncher(obj.GameObject):
         delta = self.pos - player.pos
             
         if not self.rocket and delta.magnitude_sq < 500*500:
-            self.rocket = Rocket(self.pos.x, self.pos.y, self)
+            self.rocket = Rocket(self.pos.x+16, self.pos.y+16, self)
             self.rocket.acc = delta.normal * 500
             map.spawn_object(self.rocket)
     

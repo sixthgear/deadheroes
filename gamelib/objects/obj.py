@@ -42,13 +42,23 @@ class GameObject(object):
         self.air = FALLING
         self.alive = True
         self.tiles = set()
-        self.anim = False
+        self.anim = None
 
         if not sys.modules.has_key('gamelib.controller.headless'):
-            self.sprite = sprite.Sprite(sprites[self.tex_index])
-            self.sprite.image.anchor_x = self.width / 2 
-            self.sprite.image.anchor_y = self.height / 2
-            self.sprite.set_position(self.pos.x+ self.width/2, self.pos.y+self.height/2)
+            if self.tile_width == 1:
+                self.sprite = sprite.Sprite(sprites[self.tex_index])
+                self.sprite.image.anchor_x = self.width / 2 
+                self.sprite.image.anchor_y = self.height / 2
+                self.sprite.set_position(self.pos.x+ self.width/2, self.pos.y+self.height/2)
+            else:
+                # print type(sprites[self.tex_index])
+                img = image.Texture.create(self.tile_width * 32, 64)
+                for i in range(self.tile_width):
+                    img.blit_into(sprites[self.tex_index + i].image_data, 32 * i, 0, 0)
+                self.sprite = sprite.Sprite(img)
+                self.sprite.image.anchor_x = self.width / 2 
+                self.sprite.image.anchor_y = self.height / 2
+                self.sprite.set_position(self.pos.x+ self.width/2, self.pos.y+self.height/2)
 
     def ground(self):
         self.air = ON_GROUND        

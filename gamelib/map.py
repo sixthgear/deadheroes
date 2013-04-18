@@ -514,7 +514,7 @@ class Map(object):
             return
 
         tile = self.get(x, y)
-        print tile.x, tile.y, tile.edges
+        # print tile.x, tile.y, tile.edges
         # can't highlight boundaries
         if self.is_bound(tile):
             self._highlight.enabled = False
