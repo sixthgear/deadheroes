@@ -97,7 +97,7 @@ class Map(object):
         # this includes enemies, switches, wires, etc.
         self.player = None
         self.objects = []
-        self.object_spawn_list = {}
+        self.object_spawn_list = {74: CHEST, 76: DOOR}
         self.player_spawn = 42            
 
         if not sys.modules.has_key('gamelib.controller.headless'):
@@ -108,8 +108,8 @@ class Map(object):
             self._object_sprite_batch = pyglet.graphics.Batch()
             self._vertex_list = pyglet.graphics.vertex_list(0, 'v2f', 't2f')
             self._vertex_list_dirty = True
-
-        self.spawn_player()
+        
+        self.init_state()
 
     def init_state(self):
         self.despawn_objects()
