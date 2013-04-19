@@ -126,3 +126,6 @@ class Login(object):
 
     def on_login_failure(self):
         self.status.text = STATUS['invalid']
+
+    def cleanup(self):
+        pass

@@ -1,14 +1,11 @@
 from pyglet.gl import *
 from pyglet import clock
 from pyglet.window import key
+from gamelib import map
 from gamelib import fixedsteploop
 from gamelib.network import Session
 from gamelib.objects import fx
-import copy
-import edit
-import play
-import replay
-import login
+from gamelib.controller import login, menu, edit, play, replay
 
 class Controller(pyglet.window.Window):
 
@@ -18,13 +15,13 @@ class Controller(pyglet.window.Window):
     properties = {
         'width': 1280, 
         'height': 800, 
-        'caption': 'Pyweek 16',
+        'caption': 'The Heroes Are Dead',
         'fullscreen': False
     }
 
     def __init__(self):
         super(Controller, self).__init__(**self.properties)
-        self.set_vsync(False)        
+        self.set_vsync(False)
         self.states = {}
         self.current_state = None
         self.fps_display = pyglet.clock.ClockDisplay()
@@ -32,31 +29,35 @@ class Controller(pyglet.window.Window):
         self.timer = fixedsteploop.FixedStepLoop(self.update, self.DT, self.DT*2)
         self.session = Session(self)
 
-    def switch(self, name, state=None):
-
-        fx.cleanup()
-
+    def switch(self, name, persist=False, state=None):
+        """
+        This function will switch contexts between different input/rending controllers.
+        """
+        
         if self.current_state:
             self.remove_handlers(self.current_state)
             self.remove_handlers(self.current_state.keys)
+            self.current_state.cleanup()
 
-        if self.states.has_key(name):
-            state = self.states[name]
-        else:
-            self.states[name] = state
+        if persist:
+            if self.states.has_key(name):
+                state = self.states[name]
+            else:
+                self.states[name] = state
         
         self.current_state = state
+
         self.push_handlers(self.current_state)
         self.push_handlers(self.current_state.keys)        
 
 
     def login(self, dt=0.0):
         login_screen = login.Login(window=self)
-        self.switch('login', login_screen)
+        self.switch('login', persist=False, state=login_screen)
 
     def on_login(self, user, password):
         self.session.login(user, password)
-        self.edit(dt = 0.0)
+        self.menu()
 
     def on_no_connection(self):
         pass
@@ -69,31 +70,33 @@ class Controller(pyglet.window.Window):
         if self.states.has_key('login'):
             self.states['login'].on_login_failure()
 
-    def edit(self, dt=0.0):
+    def menu(self):
+        self.switch('menu', persist=False, state=menu.Menu(window=self))
+
+    def edit(self, dungeon=None):
+        print 'switching to edit'
         if self.states.has_key('edit'):
             self.states['edit'].map.init_state()
+            self.switch('edit', persist=True)
+        else:
+            try:
+                dungeon = map.Map.load(0)
+            except:
+                dungeon = None
+            self.switch('edit', persist=True, state=edit.Editor(window=self, dungeon=dungeon))
 
-        self.switch('edit', edit.Editor(window=self))
 
+    def load(self, dungeon_id):
+        data = self.session.get_dungeon(dungeon_id)        
+        return map.Map.load(data)
 
-    def play(self, dt=0.0):
-
-        if self.states.has_key('play'):
-            del self.states['play']
-
-        d = self.states['edit'].map
-
-        self.switch('play', play.Game(window=self, dungeon=d))
+    def play(self, dungeon):
+        self.switch('play', persist=False, state=play.Game(window=self, dungeon=dungeon))
         
-
-    def replay(self, dt=0.0):
-
-        if self.states.has_key('replay'):
-            del self.states['replay']
-
-        r = self.states['play'].replay
-        d = self.states['play'].map
-        state = replay.Replay(window=self, dungeon=d, replay=r)
+    def replay(self, map, rep):
+        """
+        """        
+        state = replay.Replay(window=self, dungeon=map, replay=rep)
         state.save()
         
         self.switch('replay', state)
@@ -105,7 +108,6 @@ class Controller(pyglet.window.Window):
 
         if (modifiers & (key.MOD_CTRL | key.MOD_COMMAND)) and symbol == key.Q:
             pyglet.app.exit()
-
 
         elif (modifiers & (key.MOD_CTRL | key.MOD_COMMAND)) and modifiers & key.MOD_ALT and symbol == key.F:
             self.show_fps = not self.show_fps            

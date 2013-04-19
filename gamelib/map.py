@@ -114,49 +114,55 @@ class Map(object):
         self.init_state()
 
     def init_state(self):
+        self._highlight.enabled = True
         self.despawn_objects()
         self._object_sprite_batch = pyglet.graphics.Batch()
         self.spawn_objects()
         self.spawn_player()
 
     @classmethod
-    def load(cls, map_id):
+    def load(cls, data):
         """
         Loads a map from the server and returns a new Map obj.
         """
-        with open ('mapdata.json', 'r') as f:             
-            data = json.load(f)
-            m = cls(data['width'], data['height'])
-            m.object_spawn_list = {}
+        # with open ('mapdata.json', 'r') as f:             
+            # data = json.load(f)
+        # print data
+        # data = json.loads(data)
+        m = cls(data['width'], data['height'])
+        m.object_spawn_list = {}
 
-            for y in range(m.height):
-                for x in range(m.width):
-                    i = y * m.width + x
-                    m.grid[i] = Tile(x, y, data['grid'][i], data['edges'][i])
+        for y in range(m.height):
+            for x in range(m.width):
+                i = y * m.width + x
+                m.grid[i] = Tile(x, y, data['grid'][i], data['edges'][i])
 
-            for key, o in data['objects'].iteritems():
-                m.object_spawn_list[int(key)] = o
+        for key, o in data['objects'].iteritems():
+            m.object_spawn_list[int(key)] = o
 
-            m.player_spawn = data['player_spawn']
-            m.spawn_player()
-            m.spawn_objects()
+        m.player_spawn = data['player_spawn']
+        m.spawn_player()
+        m.spawn_objects()
 
         return m
+
+    def export_json(self):
+        jsondata = json.dumps({
+            'width': self.width,
+            'height': self.height,
+            'grid': [t.type for t in self.grid],
+            'edges': [t.edges for t in self.grid],
+            'objects': self.object_spawn_list,
+            'player_spawn': self.player_spawn
+        })
+        return jsondata
 
     def save(self):
         """
         Writes a map to the server in JSON.
         """
-        with open ('mapdata.json', 'w') as f:
-            jsondata = json.dumps({
-                'width': self.width,
-                'height': self.height,
-                'grid': [t.type for t in self.grid],
-                'edges': [t.edges for t in self.grid],
-                'objects': self.object_spawn_list,
-                'player_spawn': self.player_spawn
-            })
-            f.write(jsondata)
+        with open ('mapdata.json', 'w') as f:            
+            f.write(self.export_json())
 
     def despawn_object(self, o):
         # TODO remove from batch too?        

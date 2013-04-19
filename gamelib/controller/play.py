@@ -140,10 +140,6 @@ class Game(object):
         self.map.objects = [o for o in self.map.objects if o.alive]
         self.tick += 1
 
-    
-
-
-
     def on_draw(self):
         """
         Draw the entire game state.
@@ -162,10 +158,14 @@ class Game(object):
         """
         if symbol == key.ESCAPE:            
             self.map.save()
-            pyglet.app.exit()
+            defer(self.window.menu)
         elif symbol == key.TAB:
-            defer(self.window.edit)
-            self.map._highlight.enabled = True
+            defer(self.window.edit)            
         elif symbol == key.ENTER and not self.playing:            
             self.init_state()            
         
+    def cleanup(self):
+        """
+        Cleanup any global or persistent state.
+        """
+        fx.cleanup()

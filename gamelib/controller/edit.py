@@ -18,16 +18,16 @@ class Editor(object):
     The Dungeon Editor
     """    
 
-    def __init__(self, window):     
+    def __init__(self, window, dungeon=None):
         self.window = window
         self.music = None                
         self.keys = key.KeyStateHandler()
         self.cursor = [0,0]
         self.hud = hud_edit.HUD()
 
-        try:
-            self.map = map.Map.load(0)
-        except IOError:
+        if dungeon:
+            self.map = dungeon
+        else:
             self.map = map.Map(40, 23)
         
         self.mode = MODE_TILE
@@ -54,15 +54,23 @@ class Editor(object):
         if self.window.show_fps: 
             self.window.fps_display.draw()
 
+    def save(self):
+        json = self.map.export_json()        
+        print 'Saved: ', self.window.session.upload_dungeon(json)
+
     def on_key_press(self, symbol, modifiers):
 
         if symbol == key.ESCAPE:
             self.map.save()
-            pyglet.app.exit()
+            self.save()
+            defer(self.window.menu)
+
+        if symbol == key.S:
+            self.save()            
+            # defer(self.window.menu)
 
         if symbol == key.TAB:
-            defer(self.window.play)
-            self.map._highlight.enabled = False
+            defer(self.window.play, self.map)            
 
         # clear map
         if symbol == key.C:
@@ -158,3 +166,6 @@ class Editor(object):
                         
     def on_mouse_release(self, x, y, button, modifiers):
         pass
+
+    def cleanup(self):
+        self.map._highlight.enabled = False

@@ -1,4 +1,7 @@
 import pyglet
+from pyglet import text
+from pyglet import graphics
+from gamelib.util_hax import defer
 
 class Rectangle(object):
     '''Draws a rectangle into a batch.'''
@@ -8,7 +11,12 @@ class Rectangle(object):
             ('c4B', [200, 200, 220, 255] * 4)
         )
 
-class TextWidget(object):
+class Widget(object):
+
+        def hit_test(self, x, y):
+            return (0 < x - self.layout.x < self.layout.width and 0 < y - self.layout.y < self.layout.height)
+
+class TextWidget(Widget):
     def __init__(self, text, x, y, width, batch):
         self.document = pyglet.text.document.UnformattedDocument(text)
         self.document.set_style(0, len(self.document.text),
@@ -29,10 +37,6 @@ class TextWidget(object):
         self.rectangle = Rectangle(x - pad, y - pad,
                                    x + width + pad, y + height + pad, batch)
         self.lose_focus()
-
-    def hit_test(self, x, y):
-        return (0 < x - self.layout.x < self.layout.width and
-                0 < y - self.layout.y < self.layout.height)
 
     def lose_focus(self):
     	self.caret.visible = False
@@ -61,3 +65,38 @@ class TextWidget(object):
 
     def get_text(self):
     	return self.document.text
+
+class DungeonListingWidget(Widget):
+
+    def __init__(self, x, y, id, age, attempts, batch):
+
+        # self.id = id
+        # self.age = age
+        # self.attempts = attempts
+
+        self.id = id
+        self.x = x
+        self.y = y
+
+        self.labels = {
+        'title': text.Label(
+            'Dungeon %s' % id, 
+            x=x, y=y, 
+            font_size=12, font_name="Arial", anchor_x='left', anchor_y='bottom', 
+            color=(100,100,100,255),
+            batch=batch), 
+
+        'age': text.Label(
+            '%d' % age, 
+            x=x+400, y=y, 
+            font_size=12, font_name="Arial", anchor_x='left', anchor_y='bottom', 
+            color=(100,100,100,255),
+            batch=batch), 
+
+        'title': text.Label(
+            '%d' % attempts, 
+            x=x+600, y=y, 
+            font_size=12, font_name="Arial", anchor_x='left', anchor_y='bottom', 
+            color=(100,100,100,255),
+            batch=batch), 
+        }

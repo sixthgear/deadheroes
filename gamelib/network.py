@@ -24,7 +24,7 @@ def SessionCheck(func):
     return wrapper
 
 class Session(object):
-    def __init__(self, controller, server = 'http://localhost:8000'):
+    def __init__(self, controller, server = 'http://misadventuregames.com:8000'):
         self.controller = controller
         self.server = server
         self.http_session = None
@@ -94,7 +94,7 @@ class Session(object):
         url = urlparse.urljoin(self.server, urls['dungeon'])
 
         try:
-            resp = self.http_session.post(url, dungeon)
+            resp = self.http_session.post(url, data={'dungeon': dungeon})
         except requests.exceptions.RequestException:
             #TODO: should probably event this
             return False
