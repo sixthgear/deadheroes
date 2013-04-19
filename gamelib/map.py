@@ -18,57 +18,57 @@ if not sys.modules.has_key('gamelib.controller.headless'):
 MAP_TILESIZE = 32          
 
 # edge flag constants
-E_NONE                  = 0x00
-E_TOP                   = 0x01
-E_RIGHT                 = 0x02
-E_BOTTOM                = 0x04
-E_LEFT                  = 0x08
-E_NOT_TOP               = ~E_TOP & 0xF
-E_NOT_RIGHT             = ~E_RIGHT & 0xF
-E_NOT_BOTTOM            = ~E_BOTTOM & 0xF
-E_NOT_LEFT              = ~E_LEFT & 0xF
-E_ALL                   = 0x0F
-
-# rotation constants
-R_0                     = 0x00
-R_90                    = 0x03
-R_180                   = 0x02
-R_270                   = 0x01
-
-# flip contants
-FLIP_NONE               = 0x00
-FLIP_HORZ               = 0x01
-FLIP_VERT               = 0x02
-FLIP_BOTH               = 0x03
-
-# tile type constants
-T_EMPTY                 = 0x00
-T_BLOCK_WOOD            = 0x01
-T_BLOCK_CONCRETE        = 0x02
-T_BLOCK_STEEL           = 0x03
-T_SPIKES                = 0x04
-T_LAVA                  = 0x05
+E_NONE                      = 0x00
+E_TOP                       = 0x01
+E_RIGHT                     = 0x02
+E_BOTTOM                    = 0x04
+E_LEFT                      = 0x08
+E_NOT_TOP                   = ~E_TOP & 0xF
+E_NOT_RIGHT                 = ~E_RIGHT & 0xF
+E_NOT_BOTTOM                = ~E_BOTTOM & 0xF
+E_NOT_LEFT                  = ~E_LEFT & 0xF
+E_ALL                       = 0x0F
+    
+# rotation constants    
+R_0                         = 0x00
+R_90                        = 0x03
+R_180                       = 0x02
+R_270                       = 0x01
+    
+# flip contants 
+FLIP_NONE                   = 0x00
+FLIP_HORZ                   = 0x01
+FLIP_VERT                   = 0x02
+FLIP_BOTH                   = 0x03
+    
+# tile type constants   
+T_EMPTY                     = 0x00
+T_BLOCK_WOOD                = 0x01
+T_BLOCK_CONCRETE            = 0x02
+T_BLOCK_STEEL               = 0x03
+T_SPIKES                    = 0x04
+T_LAVA                      = 0x05
 
 # texture mutators for different edge congifurations.
 # the first element of the tuple represents the texture index offset to add to the base index
 # the second element of the tuple specifies if the texture should be rotated
 TEX_MUT = {
-    E_ALL:              (0,  R_0),
-    E_NOT_RIGHT:        (16, R_0),
-    E_NOT_BOTTOM:       (16, R_90),
-    E_NOT_LEFT:         (16, R_180),
-    E_NOT_TOP:          (16, R_270),
-    E_TOP | E_BOTTOM:   (32, R_0),                    
-    E_LEFT | E_RIGHT:   (32, R_270),
-    E_LEFT | E_TOP:     (48, R_0),
-    E_TOP | E_RIGHT:    (48, R_90),               
-    E_RIGHT | E_BOTTOM: (48, R_180),
-    E_BOTTOM | E_LEFT:  (48, R_270),               
-    E_TOP:              (64, R_0),
-    E_RIGHT:            (64, R_90),
-    E_BOTTOM:           (64, R_180),
-    E_LEFT:             (64, R_270),
-    E_NONE:             (80, R_0),
+    E_ALL:                  (0,  R_0),
+    E_NOT_RIGHT:            (16, R_0),
+    E_NOT_BOTTOM:           (16, R_90),
+    E_NOT_LEFT:             (16, R_180),
+    E_NOT_TOP:              (16, R_270),
+    E_TOP | E_BOTTOM:       (32, R_0),                    
+    E_LEFT | E_RIGHT:       (32, R_270),
+    E_LEFT | E_TOP:         (48, R_0),
+    E_TOP | E_RIGHT:        (48, R_90),               
+    E_RIGHT | E_BOTTOM:     (48, R_180),
+    E_BOTTOM | E_LEFT:      (48, R_270),               
+    E_TOP:                  (64, R_0),
+    E_RIGHT:                (64, R_90),
+    E_BOTTOM:               (64, R_180),
+    E_LEFT:                 (64, R_270),
+    E_NONE:                 (80, R_0),
 }
 
 class Map(object):
@@ -118,8 +118,6 @@ class Map(object):
         self._object_sprite_batch = pyglet.graphics.Batch()
         self.spawn_objects()
         self.spawn_player()
-
-
 
     @classmethod
     def load(cls, map_id):
@@ -298,19 +296,23 @@ class Map(object):
 
             # spawn for display on map
             self.spawn_object(INFO[type](x=x0*MAP_TILESIZE, y=y0*MAP_TILESIZE))
-        
-
 
     def unplace(self, x, y):
         """
         Remove an object from the map.
         """
-        pass
-
+        tile = self.get(x, y)
+        existing = self.object_spawn_list.get(y*self.width+x, None)
+        if existing:
+            target_obj = None
+            for o in tile.objects:
+                if o.pos.x / MAP_TILESIZE == x and o.pos.y / MAP_TILESIZE == y:
+                    target_obj = o
+            self.despawn_object(target_obj)
+            del self.object_spawn_list[y*self.width+x]    
     
     def raycast(self, origin, target):
         pass
-
 
     def tiles_from_object(self, obj):
         """

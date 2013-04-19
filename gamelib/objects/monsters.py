@@ -70,8 +70,10 @@ class Robot(obj.GameObject):
 class RocketLauncher(obj.GameObject):
     
     tex_index       = 0x30
-    width           = 26
-    height          = 36
+    width           = 24
+    height          = 24
+    tile_width      = 1
+    tile_height     = 1
     dampening       = 0.0
     
     def __init__(self, x=32, y=32):

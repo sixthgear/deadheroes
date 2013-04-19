@@ -8,6 +8,7 @@ from gamelib import map
 from gamelib.objects import player
 from gamelib.objects import fx
 from gamelib.ui import hud_game
+from gamelib.util_hax import defer
 
 if not sys.modules.has_key('gamelib.controller.headless'):
     from pyglet.gl import *
@@ -112,7 +113,7 @@ class Game(object):
             for c in self.map.collide_objects(self.map.player):
                 c.collide_obj(self.map.player)
 
-            # rehash player in new position
+            # rehash player in new position                
             self.map.hash_object(self.map.player)                
         
         for o in self.map.objects:
@@ -123,18 +124,14 @@ class Game(object):
             for c in self.map.collide_geometry(o):
                 o.collide_map(c)
 
+            # rehash all objects in new position
+            # TODO: skip this for static objects
             for o in self.map.objects:            
                 self.map.hash_object(o)
     
         # ---
         # end collisions, begin cleanup
         
-        
-
-        # rehash all objects in new position
-        # TODO: skip this for static objects
-        
-
         # despawn dead objects
         for o in [o for o in self.map.objects if not o.alive]:
             self.map.despawn_object(o)
@@ -167,7 +164,7 @@ class Game(object):
             self.map.save()
             pyglet.app.exit()
         elif symbol == key.TAB:
-            pyglet.clock.schedule_once(self.window.edit, 0.0)
+            defer(self.window.edit)
             self.map._highlight.enabled = True
         elif symbol == key.ENTER and not self.playing:            
             self.init_state()            

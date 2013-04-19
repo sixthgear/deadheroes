@@ -8,6 +8,7 @@ from gamelib.objects.info import *
 from gamelib.objects import obj
 from gamelib import map
 from gamelib.ui import hud_edit
+from gamelib.util_hax import defer
 
 MODE_TILE = 0x01
 MODE_OBJ = 0x02
@@ -34,8 +35,6 @@ class Editor(object):
         self.selected_object = ZOMBIE
         self.ghost_cursor = pyglet.sprite.Sprite(pyglet.image.create(0,0))
         self.ghost_cursor.opacity = 128
-
-
         self.init_gl()
 
     def init_gl(self):
@@ -62,7 +61,7 @@ class Editor(object):
             pyglet.app.exit()
 
         if symbol == key.TAB:
-            pyglet.clock.schedule_once(self.window.play, 0.0)
+            defer(self.window.play)
             self.map._highlight.enabled = False
 
         # clear map
@@ -134,12 +133,9 @@ class Editor(object):
         tx, ty = (x / map.MAP_TILESIZE, y / map.MAP_TILESIZE)
         self.cursor = [tx, ty]
         self.map.highlight(*self.cursor)
-
         self.ghost_cursor.x = self.cursor[0] * map.MAP_TILESIZE
         self.ghost_cursor.y = self.cursor[1] * map.MAP_TILESIZE
-         
         
-
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         x = max(0, min(self.window.width-1, x))
         y = max(0, min(self.window.height-1, y))
@@ -149,9 +145,7 @@ class Editor(object):
 
     def on_mouse_press(self, x, y, button, modifiers):
         x = max(0, min(self.window.width-1, x))
-        y = max(0, min(self.window.height-1, y))
-
-        
+        y = max(0, min(self.window.height-1, y))        
         if self.mode == MODE_TILE and button == 1:
             self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.selected_tile)
         elif self.mode == MODE_OBJ and button == 1:
