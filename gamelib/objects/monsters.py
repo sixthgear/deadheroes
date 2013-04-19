@@ -2,6 +2,7 @@ import sys
 import random
 import math
 
+from gamelib import vector
 from gamelib.objects import obj
 from gamelib.objects import fx
 
@@ -17,6 +18,10 @@ class Zombie(obj.GameObject):
         self.acc.y = -2000                
         
     def ai(self, player, map):
+
+        if not player.alive:
+            return
+
         delta = self.pos - player.pos
         self.face(1 if (self.pos - self.pos0).x < 0 else 0)
         if delta.magnitude_sq < 312*312:
@@ -43,6 +48,10 @@ class Robot(obj.GameObject):
         self.acc.y = -2000                        
         
     def ai(self, player, map):
+
+        if not player.alive:
+            return
+
         delta = self.pos - player.pos 
         self.face(1 if (self.pos - self.pos0).x < 0 else 0)
 
@@ -70,10 +79,14 @@ class RocketLauncher(obj.GameObject):
         self.rocket = None
 
     def ai(self, player, map):
+
+        if not player.alive:
+            return
+
         delta = self.pos - player.pos
             
         if not self.rocket and delta.magnitude_sq < 500*500:
-            self.rocket = Rocket(self.pos.x+16, self.pos.y+16, self)
+            self.rocket = Rocket(self.pos.x+16, self.pos.y+16, self, player)
             self.rocket.acc = delta.normal * 500
             map.spawn_object(self.rocket)
     
@@ -87,11 +100,14 @@ class Rocket(obj.GameObject):
     tex_index       = 0x31
     width           = 7
     height          = 7
-    dampening       = 0.99
+    dampening       = 0.95
     
-    def __init__(self, x=32, y=32, launcher=None):
+    def __init__(self, x=32, y=32, launcher=None, player=None):
         super(Rocket, self).__init__(x, y)
         self.launcher = launcher
+        self.player = player
+        self.angle = (player.center - self.center).angle
+        self.acc = vector.Vec2d(2000,0).rotated(self.angle)
 
     def die(self):
         fx.spawn_fx(fx.Explosion(self.pos.x, self.pos.y))
@@ -107,11 +123,27 @@ class Rocket(obj.GameObject):
         self.launcher.rocket_death()        
 
     def update(self, dt2):
-        vel = (self.pos - self.pos0)
-        self.sprite.rotation = vel.angle
+        
+        # print angle
         super(Rocket, self).update(dt2)
+        vel = (self.pos - self.pos0)
+        self.sprite.rotation = vel.angle        
 
     def ai(self, player, map):
-        delta = self.center - player.center
-        self.acc = delta.normal * -400
 
+        if not player.alive:
+            return
+
+        vel = (self.pos - self.pos0)
+        delta = (self.player.center - self.center)            
+        rel_angle = (vel.x*delta.y) - (vel.y*delta.x);
+        # dot = vel.normal.dot(delta.normal)
+        # print rel_angle        
+        if rel_angle < 0:
+            self.angle += 20
+            self.acc = vector.Vec2d(1200,0)
+            self.acc.rotate(self.angle)
+        else:
+            self.angle -= 20
+            self.acc = vector.Vec2d(1200,0)
+            self.acc.rotate(self.angle)            

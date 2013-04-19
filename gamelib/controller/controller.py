@@ -27,7 +27,8 @@ class Controller(pyglet.window.Window):
         self.set_vsync(False)        
         self.states = {}
         self.current_state = None
-        self.fps_display = pyglet.clock.ClockDisplay()        
+        self.fps_display = pyglet.clock.ClockDisplay()
+        self.show_fps = True
         self.timer = fixedsteploop.FixedStepLoop(self.update, self.DT, self.DT*2)
         self.session = Session()
 
@@ -95,11 +96,15 @@ class Controller(pyglet.window.Window):
         if (modifiers & (key.MOD_CTRL | key.MOD_COMMAND)) and symbol == key.Q:
             pyglet.app.exit()
 
+
+        elif (modifiers & (key.MOD_CTRL | key.MOD_COMMAND)) and modifiers & key.MOD_ALT and symbol == key.F:
+            self.show_fps = not self.show_fps            
+
         elif (modifiers & (key.MOD_CTRL | key.MOD_COMMAND)) and symbol == key.F:
             self.set_fullscreen(not self.fullscreen)
             if not self.fullscreen:
                 self.width = self.properties['width']
-                self.height = self.properties['height']
+                self.height = self.properties['height']        
 
     def on_resize(self, width, height):        
         # Based on the default with more useful clipping planes

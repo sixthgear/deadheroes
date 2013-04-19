@@ -196,11 +196,7 @@ class Map(object):
         for tile in self.grid:
             tile.objects = set()
         self.objects = []
-
-        # player.objects = set()
-        # self.Player = None
-
-                        
+        
     # tile lookup convinience methods        
     def get(self, x, y): 
         return self.grid[y*self.width + x]
@@ -232,7 +228,7 @@ class Map(object):
 
     def change(self, x, y, type, force=False):
         """
-        Modify the map and mark dirty so we rebuild the list.
+        Modify the map and mark dirty so we rebuild the vertex list.
         """
 
         if x < 0 or y < 0 or x > self.width - 1 or y > self.height -1:            
@@ -251,7 +247,11 @@ class Map(object):
 
         # switch the tile edges if necessary
         if type != T_EMPTY and tile.type == T_EMPTY or type == T_EMPTY and tile.type != T_EMPTY:
-            # the ol swaperoo
+
+            # the ol swaperoo, this seems to hold true that for any given tile on the map, if we change
+            # the state from empty to not empty, or vice-versa, to correctly change the edge flags, we just
+            # need to simply NOT them. That is if no edges are set, set all of them. If the top-left is set,
+            # set the bottom right.
             tile.edges = ~tile.edges & 0XF
             
             # duplicate each edge to neighbor on the opposite side
@@ -313,8 +313,10 @@ class Map(object):
 
 
     def tiles_from_object(self, obj):
-        # determine a range of x,y tile indices to iterate through. For objects smaller than the size of
-        # the grid, this will be at most 4 cells.
+        """
+        Determine a range of x,y tile indices to iterate through. For objects smaller than the size of
+        the grid, this will be at most 4 cells.
+        """
         x0, y0 = int(obj.pos.x) / MAP_TILESIZE, int(obj.pos.y-1) / MAP_TILESIZE
         x1, y1 = int(obj.pos.x + obj.width) / MAP_TILESIZE + 1, int(obj.pos.y + obj.height) / MAP_TILESIZE + 1
         for y in range(y0, y1):
@@ -322,20 +324,29 @@ class Map(object):
                 yield self.get(x, y)
 
     def hash_object(self, o):
+        """
+        Hash objects against the map tiles so we can quickly check what objects occupy this cell during 
+        collision tests.
+        """
         
         new_tiles = set(self.tiles_from_object(o))
 
+        # use set intersections to determine which tiles to remove the object from
         for tile in o.tiles - new_tiles:
             tile.objects.remove(o)
 
+        # use set intersections to determine which tiles to add this object to
         for tile in new_tiles - o.tiles:
             tile.objects.add(o)
 
+        # cache this list of tiles in the object
+        # using this property is a potential alternative to calling tiles_from_object
         o.tiles = new_tiles
 
-
     def collide_objects(self, obj):
-
+        """
+        Take one object and determine any other objects it is colliding with
+        """
         collisions = set()
 
         for tile in obj.tiles: #self.tiles_from_object(obj):
@@ -346,13 +357,11 @@ class Map(object):
                     collisions.add(o)
                     # resolve
 
-
-
         return collisions
 
     def collide_geometry(self, obj):
         """
-        Collide one object against the map.
+        Collide one object against the map, and also resolve those collisions since we know the map doesn't move.
         """
         
         # assume this object is falling unless we resolve a ground collision
@@ -411,16 +420,12 @@ class Map(object):
                     obj.pos.y -= projected_edge[0]
                 elif projected_edge[1] == E_LEFT:
                     obj.pos.x -= projected_edge[0]
-
-        
+    
         # all done        
         if on_ground:                        
             obj.ground()            
         else:                        
             obj.fall()            
-
-        
-
 
         return collisions
         
@@ -445,10 +450,6 @@ class Map(object):
         glEnable(GL_TEXTURE_2D)
         glBindTexture(self.tiles_tex.target, self.tiles_tex.id)
         self._vertex_list.draw(GL_QUADS)
-
-        
-
-        
 
         # draw the highlight square
         if self._highlight.enabled:

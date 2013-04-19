@@ -84,8 +84,8 @@ class Game(object):
         # cleanup old fx
         fx.fx = [f for f in fx.fx if f.alive]
 
-        # perform ai tick every 1/3 second
-        if self.tick % 20 == 0:
+        # perform ai tick every 1/12 second
+        if self.tick % 10 == 0:
             for o in self.map.objects:
                 o.ai(self.map.player, self.map)
 
@@ -156,7 +156,8 @@ class Game(object):
         if self.map.player.alive:
             self.map.player.sprite.draw()
         self.hud.draw()
-        # self.window.fps_display.draw()
+        if self.window.show_fps: 
+            self.window.fps_display.draw()
 
     def on_key_press(self, symbol, modifiers):
         """

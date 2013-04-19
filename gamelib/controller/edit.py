@@ -47,7 +47,8 @@ class Editor(object):
         self.window.clear()
         self.map.draw()
         self.hud.draw()
-        self.window.fps_display.draw()
+        if self.window.show_fps: 
+            self.window.fps_display.draw()
 
     def on_key_press(self, symbol, modifiers):
 

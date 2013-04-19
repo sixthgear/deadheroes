@@ -68,6 +68,9 @@ class Vec2d(object):
         s.x = (self.x * cos_a) - (self.y * sin_a)
         s.y = (self.y * cos_a) + (self.x * sin_a)
         return s
+
+    def dot(self, other):
+        return (self.x * other.x + self.y * other.y)
     
     def copy(self):
         return Vec2d(self.x, self.y)
