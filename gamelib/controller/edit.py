@@ -101,7 +101,7 @@ class Editor(object):
         if symbol == key.Y:
             self.mode = MODE_OBJ
             self.selected_object = CHEST
-        if symbol == key.Y:
+        if symbol == key.U:
             self.mode = MODE_OBJ
             self.selected_object = ANVIL            
 

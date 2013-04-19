@@ -3,6 +3,7 @@ import random
 import math
 
 from gamelib.objects import obj
+from gamelib.objects import fx
 
 class Zombie(obj.GameObject):
 
@@ -42,7 +43,7 @@ class Robot(obj.GameObject):
         self.acc.y = -2000                        
         
     def ai(self, player, map):
-        delta = self.pos - player.pos
+        delta = self.pos - player.pos 
         self.face(1 if (self.pos - self.pos0).x < 0 else 0)
 
         if self.air == obj.ON_GROUND and abs(delta.y) < 32:
@@ -92,6 +93,10 @@ class Rocket(obj.GameObject):
         super(Rocket, self).__init__(x, y)
         self.launcher = launcher
 
+    def die(self):
+        fx.spawn_fx(fx.Explosion(self.pos.x, self.pos.y))
+        self.alive = False
+
     def collide_obj(self, o):
         o.die()
         self.die()
@@ -107,6 +112,6 @@ class Rocket(obj.GameObject):
         super(Rocket, self).update(dt2)
 
     def ai(self, player, map):
-        delta = self.pos - player.pos
-        self.acc = delta.normal * -560
+        delta = self.center - player.center
+        self.acc = delta.normal * -400
 

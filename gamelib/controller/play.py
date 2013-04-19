@@ -6,6 +6,7 @@ import array
 from gamelib import vector
 from gamelib import map
 from gamelib.objects import player
+from gamelib.objects import fx
 from gamelib.ui import hud_game
 
 if not sys.modules.has_key('gamelib.controller.headless'):
@@ -17,27 +18,22 @@ class Game(object):
     """
     The Game class is THE MAN.
     """
-    def __init__(self, dungeon, window=None):
-                
+    def __init__(self, dungeon, window=None):                
         self.map = dungeon
-        
         self.window = window
         self.music = None
         self.keys = key.KeyStateHandler()        
-        self.hud = hud_game.HUD()
-        self.init_gl()
-                
+        self.hud = hud_game.HUD()        
+        self.playing = False
+        self.init_gl()            
         self.init_state()
 
     def init_state(self):
-
         random.seed(0)
-        self.tick = 0
-        
+        self.tick = 0        
         self.replay = array.array('B')
-        self.map.despawn_objects()        
-        self.map.spawn_objects()
-        self.map.spawn_player()
+        self.map.init_state()
+        self.playing = True
 
     def init_gl(self):
         """
@@ -65,69 +61,100 @@ class Game(object):
         """
         # sample input
 
-        if not self.map.player.alive:
+        if self.map.player.alive:
+            controls = self.sample_input()        
+            self.map.player.input(controls)        
+            self.map.player.update(dt2)
+        elif self.playing:
             print 'DEAD!'
-            pyglet.clock.schedule_once(self.window.edit, 0.0)
-            return
-
-        controls = self.sample_input()        
-        self.map.player.input(controls)        
-        self.map.player.update(dt2)
-        
+            self.playing = False                        
+            # pyglet.clock.schedule_once(self.window.edit, 4.0)
+                
+        # update all objects
         for o in self.map.objects:
             o.update(dt2)
 
+        # update all fx
+        for f in fx.fx:
+            f.life -= 1
+            if f.life <= 0:
+                f.alive = False
+                f.sprite.delete()
+
+        # cleanup old fx
+        fx.fx = [f for f in fx.fx if f.alive]
+
+        # perform ai tick every 1/3 second
         if self.tick % 20 == 0:
             for o in self.map.objects:
                 o.ai(self.map.player, self.map)
 
-        self.collide()
-        self.tick += 1
-
-    def collide(self):
-        """
-        Perform all collision checks we need for this frame.
-        - collide player against 6 possible intersecting map tiles
-        - collide other objects against each 6 possible intersecting map tiles
+        # Perform all collision checks we need for this frame.
+        # - collide player against 6 possible intersecting map tiles
+        # - collide other objects against each 6 possible intersecting map tiles
         
-        + - - + - - +
-        | 1+-----+2 |
-        + -|     |- +
-        | 3|  P  |4 |
-        + -|     |- +
-        | 5+-----+6 |
-        + - - + - - +
+        # + - - + - - +
+        # | 1+-----+2 |
+        # + -|     |- +
+        # | 3|  P  |4 |
+        # + -|     |- +
+        # | 5+-----+6 |
+        # + - - + - - +
 
-        - collide player against any objects hashed in the area
-        - resolve        
-        """
+        # - collide player against any objects hashed in the area
+        # - resolve  
 
-        self.map.collide_geometry(self.map.player)
+        # player collisions
+        if self.map.player.alive:
 
-        for c in self.map.collide_objects(self.map.player):
-            c.collide_obj(self.map.player)
+            self.map.collide_geometry(self.map.player)
+
+            for c in self.map.collide_objects(self.map.player):
+                c.collide_obj(self.map.player)
+
+            # rehash player in new position
+            self.map.hash_object(self.map.player)                
         
         for o in self.map.objects:
+
+            if not o.alive:
+                continue
+
             for c in self.map.collide_geometry(o):
                 o.collide_map(c)
-                
-        self.map.hash_object(self.map.player)
 
-        for o in self.map.objects:            
-            self.map.hash_object(o)
+            for o in self.map.objects:            
+                self.map.hash_object(o)
+    
+        # ---
+        # end collisions, begin cleanup
+        
+        
 
+        # rehash all objects in new position
+        # TODO: skip this for static objects
+        
+
+        # despawn dead objects
         for o in [o for o in self.map.objects if not o.alive]:
             self.map.despawn_object(o)
 
+        # clean up objects list
         self.map.objects = [o for o in self.map.objects if o.alive]
+        self.tick += 1
+
     
+
+
+
     def on_draw(self):
         """
         Draw the entire game state.
         """
         self.window.clear()
         self.map.draw()
-        self.map.player.sprite.draw()
+        if self.map.player.alive:
+            self.map.player.sprite.draw()
         self.hud.draw()
         # self.window.fps_display.draw()
 
@@ -141,4 +168,6 @@ class Game(object):
         elif symbol == key.TAB:
             pyglet.clock.schedule_once(self.window.edit, 0.0)
             self.map._highlight.enabled = True
+        elif symbol == key.ENTER and not self.playing:            
+            self.init_state()            
         

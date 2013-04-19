@@ -3,6 +3,7 @@ from pyglet import clock
 from pyglet.window import key
 from gamelib import fixedsteploop
 from gamelib.network import Session
+from gamelib.objects import fx
 import copy
 import edit
 import play
@@ -23,7 +24,7 @@ class Controller(pyglet.window.Window):
 
     def __init__(self):
         super(Controller, self).__init__(**self.properties)
-        self.set_vsync(True)        
+        self.set_vsync(False)        
         self.states = {}
         self.current_state = None
         self.fps_display = pyglet.clock.ClockDisplay()        
@@ -31,6 +32,8 @@ class Controller(pyglet.window.Window):
         self.session = Session()
 
     def switch(self, name, state=None):
+
+        fx.cleanup()
 
         if self.current_state:
             self.remove_handlers(self.current_state)

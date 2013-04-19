@@ -7,8 +7,8 @@ import requests
 from gamelib import collide
 from gamelib import vector
 from gamelib.objects.info import *
+from gamelib.objects import fx
 
-# from gamelib.objects import obj
 # from gamelib.objects import monsters
 
 if not sys.modules.has_key('gamelib.controller.headless'):
@@ -76,6 +76,8 @@ class Map(object):
     The Map class holds a single multi-level dungeon.
     """
 
+    tiles_tex = pyglet.resource.texture('tiles.png')
+
     def __init__(self, width, height):
         """
         Creates a new blank map.
@@ -88,25 +90,24 @@ class Map(object):
         # create grid
         self.grid = [Tile(t%width, t/width, type=T_EMPTY) for t in range(width*height) ]
         
-        # create edges
-        for tile in self.grid:
-            if self.is_bound(tile, E_ALL):
-                self.change(tile.x, tile.y, T_BLOCK_CONCRETE, force=True)
-
         # live object data
         # these are all the game objects the maps needs to render over top of the tiles
         # this includes enemies, switches, wires, etc.
         self.player = None
         self.objects = []
-        self.object_spawn_list = {74: CHEST, 76: DOOR}
+        self.object_spawn_list = {76: CHEST, 42: DOOR}
         self.player_spawn = 42            
 
+        # create edges
+        for tile in self.grid:
+            if self.is_bound(tile, E_ALL):
+                self.change(tile.x, tile.y, T_BLOCK_CONCRETE, force=True)
+
         if not sys.modules.has_key('gamelib.controller.headless'):
-            # internal rendering data            
-            self.tiles_tex = pyglet.resource.texture('tiles.png')
+            # internal rendering data                        
             self._highlight = pyglet.graphics.vertex_list(4, 'v2f')
             self._highlight.enabled = False
-            self._object_sprite_batch = pyglet.graphics.Batch()
+            self._object_sprite_batch = pyglet.graphics.Batch()            
             self._vertex_list = pyglet.graphics.vertex_list(0, 'v2f', 't2f')
             self._vertex_list_dirty = True
         
@@ -128,6 +129,8 @@ class Map(object):
         with open ('mapdata.json', 'r') as f:             
             data = json.load(f)
             m = cls(data['width'], data['height'])
+            m.object_spawn_list = {}
+
             for y in range(m.height):
                 for x in range(m.width):
                     i = y * m.width + x
@@ -179,9 +182,7 @@ class Map(object):
         x = self.player_spawn % self.width * MAP_TILESIZE
         y = self.player_spawn / self.width * MAP_TILESIZE
         self.player = player.Player(x, y)         
-        self.hash_object(self.player)
-        if not sys.modules.has_key('gamelib.controller.headless'):
-            self.player.sprite.batch = self._object_sprite_batch
+        self.hash_object(self.player)        
 
     def spawn_objects(self):
         for i, obj_type in self.object_spawn_list.iteritems():
@@ -243,6 +244,11 @@ class Map(object):
         if not force and self.is_bound(tile, E_ALL):
             return
 
+        # cant place over objects
+        existing = self.object_spawn_list.get(y*self.width+x, None)
+        if existing:
+            return
+
         # switch the tile edges if necessary
         if type != T_EMPTY and tile.type == T_EMPTY or type == T_EMPTY and tile.type != T_EMPTY:
             # the ol swaperoo
@@ -267,29 +273,31 @@ class Map(object):
             tile.type = type
             self._vertex_list_dirty = True
 
-    def place(self, x, y, type):
+    def place(self, x0, y0, type):
         """
         Place an object on the map.
         """
 
-        tile = self.get(x, y)
-        existing = self.object_spawn_list.get(y*self.width+x, None)
-
-        if not tile.is_empty:
-            return
-
-        if existing:
-            return
+        # check tiles to make sure empty
+        x1, y1 = x0 + INFO[type].tile_width, y0 + INFO[type].tile_height
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                tile = self.get(x, y)
+                existing = self.object_spawn_list.get(y*self.width+x, None)
+                if not tile.is_empty:
+                    return
+                if existing:
+                    return
 
         if type == PLAYER:
-            self.player_spawn = y*self.width+x
+            self.player_spawn = y0*self.width+x0
             self.spawn_player()
         else:
             # add to spawn list
-            self.object_spawn_list[y*self.width+x] = type
+            self.object_spawn_list[y0*self.width+x0] = type
 
             # spawn for display on map
-            self.spawn_object(INFO[type](x=x*MAP_TILESIZE, y=y*MAP_TILESIZE))
+            self.spawn_object(INFO[type](x=x0*MAP_TILESIZE, y=y0*MAP_TILESIZE))
         
 
 
@@ -297,7 +305,7 @@ class Map(object):
         """
         Remove an object from the map.
         """
-        pass        
+        pass
 
     
     def raycast(self, origin, target):
@@ -427,13 +435,20 @@ class Map(object):
             self.rebuild_vertices()
             self._vertex_list_dirty = False
 
+        # draw the objects batch
+        self._object_sprite_batch.draw()
+
+        # draw the effects batch
+        fx._fx_sprite_batch.draw()
+
         # bind the tile texture and draw the whole map
         glEnable(GL_TEXTURE_2D)
         glBindTexture(self.tiles_tex.target, self.tiles_tex.id)
         self._vertex_list.draw(GL_QUADS)
 
-        # draw the objects batch
-        self._object_sprite_batch.draw()
+        
+
+        
 
         # draw the highlight square
         if self._highlight.enabled:

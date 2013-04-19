@@ -30,7 +30,7 @@ class GameObject(object):
     width           = 0
     height          = 0
     tile_width      = 1
-    tile_height     = 1            
+    tile_height     = 2            
     dampening       = 1.0
 
     def __init__(self, x, y):    
@@ -63,6 +63,10 @@ class GameObject(object):
     @property
     def vel(self):
         return self.pos0 - self.pos
+
+    @property
+    def center(self):
+        return self.pos + vector.Vec2d(self.width/2, self.height/2)
 
     def ground(self):
         self.air = ON_GROUND        
