@@ -58,6 +58,9 @@ class Controller(pyglet.window.Window):
         self.session.login(user, password)
         self.edit(dt = 0.0)
 
+    def on_no_connection(self):
+        pass
+
     def on_logged_in(self, response):
         #self.edit(dt = 0.0)
         print response
