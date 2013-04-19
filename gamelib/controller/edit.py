@@ -5,6 +5,7 @@ from pyglet.window import key
 from pyglet import clock
 from gamelib import vector
 from gamelib.objects.info import *
+from gamelib.objects import obj
 from gamelib import map
 from gamelib.ui import hud_edit
 
@@ -31,6 +32,9 @@ class Editor(object):
         self.mode = MODE_TILE
         self.selected_tile = map.T_BLOCK_WOOD
         self.selected_object = ZOMBIE
+        self.ghost_cursor = pyglet.sprite.Sprite(pyglet.image.create(0,0))
+        self.ghost_cursor.opacity = 128
+
 
         self.init_gl()
 
@@ -47,6 +51,7 @@ class Editor(object):
         self.window.clear()
         self.map.draw()
         self.hud.draw()
+        self.ghost_cursor.draw()
         if self.window.show_fps: 
             self.window.fps_display.draw()
 
@@ -104,15 +109,36 @@ class Editor(object):
             self.selected_object = CHEST
         if symbol == key.U:
             self.mode = MODE_OBJ
-            self.selected_object = ANVIL            
+            self.selected_object = ANVIL
 
+        if self.mode == MODE_OBJ:
+            t = pyglet.resource.texture('sprites.png')
+
+            index = INFO[self.selected_object].tex_index
+            width = INFO[self.selected_object].tile_width * map.MAP_TILESIZE
+            height = INFO[self.selected_object].tile_height * map.MAP_TILESIZE
+            x = (index%16) * map.MAP_TILESIZE
+            y = (index/8) * map.MAP_TILESIZE
+
+            self.ghost_cursor.image = t.get_region(x,y,width,height)
+                        
+        else:
+            x = (self.selected_tile%16) * map.MAP_TILESIZE
+            y = (self.selected_tile/16) * map.MAP_TILESIZE
+            self.ghost_cursor.image = map.Map.tiles_tex.get_region(x,y,32,32)
 
 
     def on_mouse_motion(self, x, y, dx, dy): 
         x = max(0, min(self.window.width-1, x))
         y = max(0, min(self.window.height-1, y))
-        self.cursor = [x / map.MAP_TILESIZE, y / map.MAP_TILESIZE]
+        tx, ty = (x / map.MAP_TILESIZE, y / map.MAP_TILESIZE)
+        self.cursor = [tx, ty]
         self.map.highlight(*self.cursor)
+
+        self.ghost_cursor.x = self.cursor[0] * map.MAP_TILESIZE
+        self.ghost_cursor.y = self.cursor[1] * map.MAP_TILESIZE
+         
+        
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         x = max(0, min(self.window.width-1, x))

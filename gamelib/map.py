@@ -536,7 +536,7 @@ class Map(object):
         if self.is_bound(tile):
             self._highlight.enabled = False
         else:
-            self._highlight.vertices = tile.quad
+            self._highlight.vertices = tile.quad                    
             self._highlight.enabled = True
 
 class Tile(object):
