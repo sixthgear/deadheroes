@@ -78,17 +78,13 @@ class Controller(pyglet.window.Window):
         if self.states.has_key('edit'):
             self.states['edit'].map.init_state()
             self.switch('edit', persist=True)
-        else:
-            try:
-                dungeon = map.Map.load(0)
-            except:
-                dungeon = None
+        else:            
             self.switch('edit', persist=True, state=edit.Editor(window=self, dungeon=dungeon))
 
 
     def load(self, dungeon_id):
         data = self.session.get_dungeon(dungeon_id)        
-        return map.Map.load(data)
+        return map.Map.load(id, data)
 
     def play(self, dungeon):
         self.switch('play', persist=False, state=play.Game(window=self, dungeon=dungeon))

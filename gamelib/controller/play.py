@@ -29,6 +29,7 @@ class Game(object):
         self.init_gl()            
         self.init_state()
 
+
     def init_state(self):
         random.seed(0)
         self.tick = 0        
@@ -62,13 +63,19 @@ class Game(object):
         """
         # sample input
 
-        if self.map.player.alive:
+        if self.playing and self.map.player.alive:
             controls = self.sample_input()        
             self.map.player.input(controls)        
             self.map.player.update(dt2)
+
+            for d in self.map.doors:
+                if d.won:
+                    print 'WON'
+                    self.playing = False
+
         elif self.playing:
             print 'DEAD!'
-            self.playing = False                        
+            self.playing = False
             # pyglet.clock.schedule_once(self.window.edit, 4.0)
                 
         # update all objects
@@ -106,7 +113,7 @@ class Game(object):
         # - resolve  
 
         # player collisions
-        if self.map.player.alive:
+        if self.playing and self.map.player.alive:
 
             self.map.collide_geometry(self.map.player)
 
@@ -160,7 +167,7 @@ class Game(object):
             self.map.save()
             defer(self.window.menu)
         elif symbol == key.TAB:
-            defer(self.window.edit)            
+            defer(self.window.edit, self.map)
         elif symbol == key.ENTER and not self.playing:            
             self.init_state()            
         

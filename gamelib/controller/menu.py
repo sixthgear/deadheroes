@@ -9,7 +9,7 @@ from gamelib.objects.obj import Point
 
 class Menu(object):
 
-    per_page = 10
+    per_page = 25
 
     def __init__(self, window):
         self.window = window

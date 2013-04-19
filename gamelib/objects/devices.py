@@ -1,3 +1,4 @@
+# from gamelib.util_hax import defer
 from gamelib.objects import obj
 
 class Door(obj.GameObject):
@@ -6,6 +7,14 @@ class Door(obj.GameObject):
     height          = 59
     tile_width      = 2
     tile_height     = 2
+
+    def __init__(self, *args, **kwargs):
+        super(Door, self).__init__(*args, **kwargs)
+        self.won = False
+
+    def collide_obj(self, o):
+        if o.treasure_collected:
+            self.won = True
     
 class Chest(obj.GameObject):
 
@@ -20,6 +29,7 @@ class Chest(obj.GameObject):
         self.sprite.image.anchor_x = self.width / 2 
         self.sprite.image.anchor_y = self.height / 2
         self.sprite.set_position(self.pos.x+ self.width/2, self.pos.y+self.height/2)
+        o.treasure_collected = True
 
 class Anvil(obj.GameObject):
     tex_index       = 0x60

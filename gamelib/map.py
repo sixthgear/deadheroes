@@ -82,7 +82,7 @@ class Map(object):
         """
         Creates a new blank map.
         """
-        self.id = 0             # the map id from the server
+        self.id = ''            # the map id from the server
         self.width = width      # width of this map in tiles
         self.height = height    # height of this map in tiles
         self.deaths = 0         # the number of players to meet their demise here
@@ -97,6 +97,7 @@ class Map(object):
         self.objects = []
         self.object_spawn_list = {76: CHEST, 42: DOOR}
         self.player_spawn = 42            
+        self.doors = []
 
         # create edges
         for tile in self.grid:
@@ -118,18 +119,24 @@ class Map(object):
         self.despawn_objects()
         self._object_sprite_batch = pyglet.graphics.Batch()
         self.spawn_objects()
-        self.spawn_player()
+        self.spawn_player() 
+
+        self.doors = []
+        for o in self.objects:
+            if o.__class__ == INFO[DOOR]:
+                self.doors.append(o)   
 
     @classmethod
-    def load(cls, data):
+    def load(cls, id, data):
         """
         Loads a map from the server and returns a new Map obj.
         """
         # with open ('mapdata.json', 'r') as f:             
             # data = json.load(f)
         # print data
-        # data = json.loads(data)
+        # data = json.loads(data)    
         m = cls(data['width'], data['height'])
+        m.id = id
         m.object_spawn_list = {}
 
         for y in range(m.height):
