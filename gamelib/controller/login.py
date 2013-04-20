@@ -9,6 +9,7 @@ from gamelib.util_hax import defer
 STATUS = {
     "login" : "Status: Please Login",
     "invalid": "Status: Password Incorrect",
+    "badsession": "Status: Bad Session, Please Login",
     "down": "Status: Unable to reach server"
 }
 
@@ -126,6 +127,9 @@ class Login(object):
 
     def on_login_failure(self):
         self.status.text = STATUS['invalid']
+
+    def on_no_connection(self):
+        self.status.text = STATUS['down']
 
     def cleanup(self):
         pass
