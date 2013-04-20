@@ -194,7 +194,8 @@ class Game(object):
         elif symbol == key.ESCAPE and self.playing:
             self.map.player.die()
         elif symbol == key.TAB:
-            defer(self.window.edit, self.map)
+            pass
+            # defer(self.window.edit, self.map)
         elif symbol == key.SPACE and not self.playing and not self.map.player.alive and not self.intro:
             self.init_state()
         elif self.intro:

@@ -39,7 +39,6 @@ class Session(object):
                                             'password': password})
         except requests.exceptions.RequestException:
             self.http_session = None
-
             defer(self.controller.on_no_connection)
             return
 
@@ -91,7 +90,7 @@ class Session(object):
             return None
 
     @SessionCheck
-    def get_dungeon(self, dungeon_id):
+    def get_dungeon(self, dungeon_id=''):
         frag = urlparse.urljoin(urls['dungeon'], dungeon_id)
         url = urlparse.urljoin(self.server, frag)
 

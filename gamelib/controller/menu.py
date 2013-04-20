@@ -46,7 +46,7 @@ class Menu(object):
                 id=self.dungeons[i]['id'], 
                 username=self.dungeons[i]['username'], 
                 age=self.dungeons[i]['age'], 
-                value=4000,
+                value=self.dungeons[i]['value'],
                 attempts=self.dungeons[i]['attempts'], 
                 batch=self._label_batch
             )                
@@ -65,10 +65,14 @@ class Menu(object):
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.ENTER:
-            defer(self.window.edit)
-
-        if symbol == key.TAB:
+            # defer(self.window.edit)
             pass
+        if symbol == key.TAB:
+            m = self.window.load(self.window.player_data['name'])
+            if m:
+                defer(self.window.edit, m)
+            else:
+                defer(self.window.edit)
 
         if symbol == key.ESCAPE:
             pyglet.app.exit()
@@ -86,7 +90,7 @@ class Menu(object):
         for d in self.dungeons_widgets:
             if collide.AABB_to_AABB(Point(x,y), 0, 0, Point(d.x, d.y), 800, 24):
                 # defer(self.window.play)
-                m = self.window.load(d.id, d.username)
+                m = self.window.load(d.username, d.id)
                 defer(self.window.play, m)
                 # print dungeon
 

@@ -65,7 +65,7 @@ class Editor(object):
 
     def save(self):
         json = self.map.export_json()        
-        print 'Saved: ', self.window.session.upload_dungeon(json)
+        return self.window.session.upload_dungeon(json)
 
     def on_key_press(self, symbol, modifiers):
 
@@ -80,8 +80,12 @@ class Editor(object):
 
         if symbol == key.TAB:
             self.map.save()
-            self.save()
-            defer(self.window.play, self.map)            
+            if self.save():
+                self.window.refresh_player_data()
+                defer(self.window.play, self.map)
+            else:
+                print 'Error: the map couldn\'t be saved!'
+
 
         # clear map
         if symbol == key.C:
