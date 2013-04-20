@@ -39,7 +39,6 @@ class Session(object):
                                             'password': password})
         except requests.exceptions.RequestException:
             self.http_session = None
-
             defer(self.controller.on_no_connection)
             return
 
