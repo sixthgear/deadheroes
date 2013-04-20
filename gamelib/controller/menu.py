@@ -33,6 +33,9 @@ class Menu(object):
             batch=self._label_batch),        
         }
 
+        self.load_dungeons()
+
+    def load_dungeons(self):
         self.page_start = 0
 
         self.dungeons = self.window.session.dungeons()
@@ -73,6 +76,8 @@ class Menu(object):
                 defer(self.window.edit, m)
             else:
                 defer(self.window.edit)
+        if symbol == key.R: # Refresh
+            self.load_dungeons()
 
         if symbol == key.ESCAPE:
             pyglet.app.exit()
