@@ -35,7 +35,16 @@ class Editor(object):
         self.selected_object = ZOMBIE
         self.ghost_cursor = pyglet.sprite.Sprite(pyglet.image.create(0,0))
         self.ghost_cursor.opacity = 128
+
+        self.state = {
+            'budget': 4000 # TODO LOAD THIS FORM SERVER
+        }
+        self.hud.alter_budget(self.state['budget'])
+        
+                
         self.init_gl()
+
+        
 
     def init_gl(self):
         glEnable(GL_BLEND)
@@ -121,9 +130,9 @@ class Editor(object):
         if self.mode == MODE_OBJ:
             t = pyglet.resource.texture('sprites.png')
 
-            index = INFO[self.selected_object].tex_index
-            width = INFO[self.selected_object].tile_width * map.MAP_TILESIZE
-            height = INFO[self.selected_object].tile_height * map.MAP_TILESIZE
+            index = INFO[self.selected_object].cls.tex_index
+            width = INFO[self.selected_object].cls.tile_width * map.MAP_TILESIZE
+            height = INFO[self.selected_object].cls.tile_height * map.MAP_TILESIZE
             x = (index%16) * map.MAP_TILESIZE
             y = (index/8) * map.MAP_TILESIZE
 
@@ -155,14 +164,15 @@ class Editor(object):
         x = max(0, min(self.window.width-1, x))
         y = max(0, min(self.window.height-1, y))        
         if self.mode == MODE_TILE and button == 1:
-            self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.selected_tile)
+            self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.selected_tile, state=self.state)
         elif self.mode == MODE_OBJ and button == 1:
-            self.map.place(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.selected_object)
+            self.map.place(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.selected_object, state=self.state)
         elif self.mode == MODE_TILE and button == 4:
-            self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, 0)
+            self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, 0, state=self.state)
         elif self.mode == MODE_OBJ and button == 4:            
-            self.map.unplace(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE)
+            self.map.unplace(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, state=self.state)
 
+        self.hud.alter_budget(self.state['budget'])
                         
     def on_mouse_release(self, x, y, button, modifiers):
         pass

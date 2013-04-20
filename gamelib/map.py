@@ -49,6 +49,15 @@ T_BLOCK_STEEL               = 0x03
 T_SPIKES                    = 0x04
 T_LAVA                      = 0x05
 
+TILE_INFO = {
+    T_EMPTY:                (0,),
+    T_BLOCK_WOOD:           (10,),
+    T_BLOCK_CONCRETE:       (20,),
+    T_BLOCK_STEEL:          (30,),
+    T_SPIKES:               (50,),
+    T_LAVA:                 (100,),
+}
+
 # texture mutators for different edge congifurations.
 # the first element of the tuple represents the texture index offset to add to the base index
 # the second element of the tuple specifies if the texture should be rotated
@@ -124,7 +133,7 @@ class Map(object):
 
         self.doors = []
         for o in self.objects:
-            if o.__class__ == INFO[DOOR]:
+            if o.__class__ == INFO[DOOR].cls:
                 self.doors.append(o)   
 
     @classmethod
@@ -198,10 +207,11 @@ class Map(object):
         self.hash_object(self.player)        
 
     def spawn_objects(self):
+        
         for i, obj_type in self.object_spawn_list.iteritems():
             x = i%self.width * MAP_TILESIZE
             y = i/self.width * MAP_TILESIZE
-            o = INFO[obj_type](x, y)
+            o = INFO[obj_type].cls(x, y)
             self.spawn_object(o)
 
     def despawn_objects(self):
@@ -239,7 +249,7 @@ class Map(object):
             return True            
         return False
 
-    def change(self, x, y, type, force=False):
+    def change(self, x, y, type, force=False, state=None):
         """
         Modify the map and mark dirty so we rebuild the vertex list.
         """
@@ -257,6 +267,14 @@ class Map(object):
         existing = self.object_spawn_list.get(y*self.width+x, None)
         if existing:
             return
+
+        if state:
+            delta = TILE_INFO[type][0] # buy new tile
+            delta -= TILE_INFO[tile.type][0] # sell old tile
+            if state['budget'] - delta < 0:
+                return False # cant afford it!
+            else:
+                state['budget'] -= delta
 
         # switch the tile edges if necessary
         if type != T_EMPTY and tile.type == T_EMPTY or type == T_EMPTY and tile.type != T_EMPTY:
@@ -283,16 +301,19 @@ class Map(object):
 
         # switch the tile type if necessary
         if tile.type != type:
+            # print state
+            # print TILE_INFO[tile.type]
+
             tile.type = type
             self._vertex_list_dirty = True
 
-    def place(self, x0, y0, type):
+    def place(self, x0, y0, type, state=None):
         """
         Place an object on the map.
-        """
+        """        
 
         # check tiles to make sure empty
-        x1, y1 = x0 + INFO[type].tile_width, y0 + INFO[type].tile_height
+        x1, y1 = x0 + INFO[type].cls.tile_width, y0 + INFO[type].cls.tile_height
         for y in range(y0, y1):
             for x in range(x0, x1):
                 tile = self.get(x, y)
@@ -306,19 +327,26 @@ class Map(object):
             self.player_spawn = y0*self.width+x0
             self.spawn_player()
         else:
+            if state:
+                if state['budget'] - INFO[type].price < 0:
+                    return # can't afford it!
+                else:
+                    state['budget'] -= INFO[type].price
             # add to spawn list
             self.object_spawn_list[y0*self.width+x0] = type
 
             # spawn for display on map
-            self.spawn_object(INFO[type](x=x0*MAP_TILESIZE, y=y0*MAP_TILESIZE))
+            self.spawn_object(INFO[type].cls(x=x0*MAP_TILESIZE, y=y0*MAP_TILESIZE))
 
-    def unplace(self, x, y):
+    def unplace(self, x, y, state=None):
         """
         Remove an object from the map.
         """
         tile = self.get(x, y)
         existing = self.object_spawn_list.get(y*self.width+x, None)
         if existing:
+            if state:
+                state['budget'] += INFO[type].price
             target_obj = None
             for o in tile.objects:
                 if o.pos.x / MAP_TILESIZE == x and o.pos.y / MAP_TILESIZE == y:

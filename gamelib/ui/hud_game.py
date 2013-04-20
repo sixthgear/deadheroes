@@ -31,14 +31,14 @@ class HUD(object):
 
             'gameover': text.Label(
                 'YOU WIN', 
-                x=640, y=400, 
+                x=640, y=384, 
                 font_size=48, font_name='DYLOVASTUFF', anchor_x='center', anchor_y='center',
                 color=(100,100,100,0),
                 batch=self._label_batch),
 
             'instructions': text.Label(
                 'PRESS SPACE TO TRY AGAIN.', 
-                x=640, y=350, 
+                x=640, y=336, 
                 font_size=18, font_name='DYLOVASTUFF', anchor_x='center', anchor_y='center',
                 color=(100,100,100,0),
                 batch=self._label_batch),
