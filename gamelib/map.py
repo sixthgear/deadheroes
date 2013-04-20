@@ -91,8 +91,8 @@ class Map(object):
         """
         Creates a new blank map.
         """
-        self.id = ''            # the map id from the server
-        self.name = ''           # the name of the dungeoneer who created this
+        self.dungeon_id = ''    # the map id from the server
+        self.name = ''          # the name of the dungeoneer who created this
         self.width = width      # width of this map in tiles
         self.height = height    # height of this map in tiles
         self.deaths = 0         # the number of players to meet their demise here
@@ -137,7 +137,7 @@ class Map(object):
                 self.doors.append(o)   
 
     @classmethod
-    def load(cls, id, name, data):
+    def load(cls, dungeon_id, name, data):
         """
         Loads a map from the server and returns a new Map obj.
         """
@@ -146,7 +146,7 @@ class Map(object):
         # print data
         # data = json.loads(data)    
         m = cls(data['width'], data['height'])
-        m.id = id
+        m.dungeon_id = dungeon_id
         m.name = name
         m.object_spawn_list = {}
 

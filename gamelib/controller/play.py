@@ -71,10 +71,10 @@ class Game(object):
         return controls
 
     def upload_replay(self, won):
+        print 'map id->', self.map.dungeon_id
         replay = base64.b64encode(self.replay.tostring())
         print 'uploading replay ({} bytes, {} seconds): '.format(len(replay), len(replay)/60),
-        print self.window.session.upload_replay(self.window.player_data['name'], self.map.id, replay, won=won)
-
+        print self.window.session.upload_replay(self.window.player_data['name'], self.map.dungeon_id, replay, won=won)
 
     def update(self, dt2):
         """
@@ -188,9 +188,11 @@ class Game(object):
         """
         Non-gameplay related keys.
         """
-        if symbol == key.ESCAPE:
-            self.map.save()
+        if symbol == key.ESCAPE and not self.playing:
+            # self.map.save()
             defer(self.window.menu)
+        elif symbol == key.ESCAPE and self.playing:
+            self.map.player.die()
         elif symbol == key.TAB:
             defer(self.window.edit, self.map)
         elif symbol == key.SPACE and not self.playing and not self.map.player.alive and not self.intro:

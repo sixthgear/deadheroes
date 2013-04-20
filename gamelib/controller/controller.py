@@ -91,7 +91,7 @@ class Controller(pyglet.window.Window):
 
     def load(self, dungeon_id, name):
         data = self.session.get_dungeon(dungeon_id)        
-        return map.Map.load(id, name, data)
+        return map.Map.load(dungeon_id, name, data)
 
     def play(self, dungeon):
         self.switch('play', persist=False, state=play.Game(window=self, dungeon=dungeon))
