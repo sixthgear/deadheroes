@@ -346,7 +346,7 @@ class Map(object):
         existing = self.object_spawn_list.get(y*self.width+x, None)
         if existing:
             if state:
-                state['budget'] += INFO[type].price
+                state['budget'] += INFO[existing].price
             target_obj = None
             for o in tile.objects:
                 if o.pos.x / MAP_TILESIZE == x and o.pos.y / MAP_TILESIZE == y:
