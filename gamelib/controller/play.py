@@ -1,4 +1,5 @@
 # from objects import player
+import base64
 import sys
 import random
 import array
@@ -40,6 +41,13 @@ class Game(object):
         self.hud.title(self.map.name)
         self.intro = True
         self.playing = False
+
+        self.state = {
+            'budget': self.window.player_data['wealth'] 
+        }
+        self.hud.alter_budget(self.state['budget'])
+
+
         fx.cleanup()
 
     def init_gl(self):
@@ -62,8 +70,11 @@ class Game(object):
         self.replay.append(controls)
         return controls
 
-    def upload_replay(self):
-        pass
+    def upload_replay(self, won):
+        replay = base64.b64encode(self.replay.tostring())
+        print 'uploading replay ({} bytes, {} seconds): '.format(len(replay), len(replay)/60),
+        print self.window.session.upload_replay(self.window.player_data['name'], self.map.id, replay, won=won)
+
 
     def update(self, dt2):
         """
@@ -78,14 +89,15 @@ class Game(object):
 
             for d in self.map.doors:
                 if d.won:
+                    self.map.player.won = True
                     self.hud.gameover(won=True)                    
                     self.playing = False
-                    self.upload_replay()
+                    self.upload_replay(won=True)
 
         elif self.playing:
             self.hud.gameover(won=False)
             self.playing = False
-            self.upload_replay()
+            self.upload_replay(won=False)
             # pyglet.clock.schedule_once(self.window.edit, 4.0)
 
         else:

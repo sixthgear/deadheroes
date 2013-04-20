@@ -24,7 +24,7 @@ def SessionCheck(func):
     return wrapper
 
 class Session(object):
-    def __init__(self, controller, server = 'http://misadventuregames.com:8000'):
+    def __init__(self, controller, server = 'http://localhost:8000'): # misadventuregames.com
         self.controller = controller
         self.server = server
         self.http_session = None
@@ -142,11 +142,16 @@ class Session(object):
         return None
 
     @SessionCheck
-    def upload_replay(self, replay):
-        url = urlparse.urljoin(self.server, urls['replay'])
-
+    def upload_replay(self, username, dungeon_id, replay, won):
+        url = urlparse.urljoin(self.server, urls['replay'], dungeon_id)
+        data = {
+            'username': username,            
+            'replay': replay,
+            'player_win': str(won)
+        }
+        print data
         try:
-            resp = self.http_session.post(url, dungeon)
+            resp = self.http_session.post(url, data)
         except requests.exceptions.RequestException:
             #TODO: should probably event this
             return False

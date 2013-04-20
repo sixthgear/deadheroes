@@ -37,14 +37,14 @@ class Editor(object):
         self.ghost_cursor.opacity = 128
 
         self.state = {
-            'budget': 4000 # TODO LOAD THIS FORM SERVER
+            'budget': self.window.player_data['wealth'] # TODO LOAD THIS FORM SERVER
         }
         self.hud.alter_budget(self.state['budget'])
         
                 
         self.init_gl()
 
-        
+
 
     def init_gl(self):
         glEnable(GL_BLEND)

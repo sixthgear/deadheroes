@@ -37,6 +37,7 @@ class Player(obj.GameObject):
         self.anim = self.animation['idle']
         self.sprite.image = self.anim
         self.treasure_collected = False
+        self.won = False
 
     def update(self, dt2):
         super(Player, self).update(dt2)

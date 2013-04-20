@@ -23,7 +23,7 @@ class HUD(object):
 
         self.labels = {
             'money': text.Label(
-                '1,000,000 EVIL DOLLARS', 
+                '0 EVIL DOLLARS', 
                 x=160, y=768, 
                 font_size=12, font_name='DYLOVASTUFF', anchor_x='left', anchor_y='center', 
                 color=(100,100,100,255),
@@ -53,6 +53,9 @@ class HUD(object):
             'x': text.Label('X', x=76, y=768, anchor_x='center', anchor_y='center', font_size=12, font_name='DYLOVASTUFF', color=(0,0,0,255), batch=self._label_batch),
             'c': text.Label('C', x=120, y=768, anchor_x='center', anchor_y='center', font_size=12, font_name='DYLOVASTUFF', color=(0,0,0,255), batch=self._label_batch),
         }
+
+    def alter_budget(self, budget):
+        self.labels['money'].text = '{} EVIL DOLLARS'.format(budget)
 
     def title(self, name):
         self.labels['gameover'].text = '{}\'S EVIL DUNGEON'.format(name.upper()) 
