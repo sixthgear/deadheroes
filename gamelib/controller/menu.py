@@ -86,7 +86,7 @@ class Menu(object):
         for d in self.dungeons_widgets:
             if collide.AABB_to_AABB(Point(x,y), 0, 0, Point(d.x, d.y), 800, 24):
                 # defer(self.window.play)
-                m = self.window.load(d.id)
+                m = self.window.load(d.id, d.username)
                 defer(self.window.play, m)
                 # print dungeon
 

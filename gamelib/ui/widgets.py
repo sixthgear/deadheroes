@@ -76,6 +76,7 @@ class DungeonListingWidget(Widget):
         # self.attempts = attempts
 
         self.id = id
+        self.username = username
         self.x = x
         self.y = y
 

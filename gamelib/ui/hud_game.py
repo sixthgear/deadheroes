@@ -29,12 +29,19 @@ class HUD(object):
                 color=(100,100,100,255),
                 batch=self._label_batch),  
 
-            # 'title': text.Label(
-            #     'DESIGN YOUR DUNGEON', 
-            #     x=640, y=768, 
-            #     font_size=24, font_name="Arial", anchor_x='center', anchor_y='center',
-            #     color=(100,100,100,255),
-            #     batch=self._label_batch),
+            'gameover': text.Label(
+                'YOU WIN', 
+                x=640, y=400, 
+                font_size=48, font_name='DYLOVASTUFF', anchor_x='center', anchor_y='center',
+                color=(100,100,100,0),
+                batch=self._label_batch),
+
+            'instructions': text.Label(
+                'PRESS SPACE TO TRY AGAIN.', 
+                x=640, y=350, 
+                font_size=18, font_name='DYLOVASTUFF', anchor_x='center', anchor_y='center',
+                color=(100,100,100,0),
+                batch=self._label_batch),
 
             # 'done': text.Label(
             #     'DONE', 
@@ -47,6 +54,26 @@ class HUD(object):
             'c': text.Label('C', x=120, y=768, anchor_x='center', anchor_y='center', font_size=12, font_name='DYLOVASTUFF', color=(0,0,0,255), batch=self._label_batch),
         }
 
+    def title(self, name):
+        self.labels['gameover'].text = '{}\'S EVIL DUNGEON'.format(name.upper()) 
+        self.labels['instructions'].text = 'GET TO THE CHEST, GET OUT WITH THE MONEY.'
+        self.labels['gameover'].color=(100,100,100,255)
+        self.labels['instructions'].color=(100,100,100,255)
+
+    def play(self):
+        self.labels['gameover'].color=(100,100,100,0)
+        self.labels['instructions'].color=(100,100,100,0)        
+
+    def gameover(self, won=True):
+        if won:
+            self.labels['gameover'].text = 'CONGRATULATIONS JERK.'
+            self.labels['instructions'].text = 'YOU STOLE $500. PRESS ESC TO RETURN TO MENU.'
+        else:
+            self.labels['gameover'].text = 'YOU ARE DEAD.'
+            self.labels['instructions'].text = 'PRESS SPACE TO TRY AGAIN OR ESC TO RETURN TO MENU.'
+
+        self.labels['gameover'].color=(100,100,100,255)
+        self.labels['instructions'].color=(100,100,100,255)
 
     def rect(self, x0, y0, x1, y1):
         return [x0, y0, x0, y1, x1, y1, x1, y0]        

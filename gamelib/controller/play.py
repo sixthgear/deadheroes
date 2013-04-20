@@ -23,8 +23,8 @@ class Game(object):
         self.map = dungeon
         self.window = window
         self.music = None
-        self.keys = key.KeyStateHandler()        
-        self.hud = hud_game.HUD()        
+        self.keys = key.KeyStateHandler()
+        self.intro = True
         self.playing = False
         self.init_gl()            
         self.init_state()
@@ -35,7 +35,12 @@ class Game(object):
         self.tick = 0        
         self.replay = array.array('B')
         self.map.init_state()
-        self.playing = True
+        self.map._highlight.enabled = False
+        self.hud = hud_game.HUD()
+        self.hud.title(self.map.name)
+        self.intro = True
+        self.playing = False
+        fx.cleanup()
 
     def init_gl(self):
         """
@@ -57,6 +62,9 @@ class Game(object):
         self.replay.append(controls)
         return controls
 
+    def upload_replay(self):
+        pass
+
     def update(self, dt2):
         """
         Sample input, integrate game physics, and resolve collisions.
@@ -70,13 +78,18 @@ class Game(object):
 
             for d in self.map.doors:
                 if d.won:
-                    print 'WON'
+                    self.hud.gameover(won=True)                    
                     self.playing = False
+                    self.upload_replay()
 
         elif self.playing:
-            print 'DEAD!'
+            self.hud.gameover(won=False)
             self.playing = False
+            self.upload_replay()
             # pyglet.clock.schedule_once(self.window.edit, 4.0)
+
+        else:
+            return
                 
         # update all objects
         for o in self.map.objects:
@@ -168,8 +181,13 @@ class Game(object):
             defer(self.window.menu)
         elif symbol == key.TAB:
             defer(self.window.edit, self.map)
-        elif symbol == key.ENTER and not self.playing:
+        elif symbol == key.SPACE and not self.playing and not self.map.player.alive and not self.intro:
             self.init_state()
+        elif self.intro:
+            self.hud.play()
+            self.playing = True
+            self.intro = False
+
         
     def cleanup(self):
         """
