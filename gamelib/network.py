@@ -24,7 +24,7 @@ def SessionCheck(func):
     return wrapper
 
 class Session(object):
-    def __init__(self, controller, server = 'http://misadventuregames.com:8000'):
+    def __init__(self, controller, server = 'http://localhost:8000'): # http://misadventuregames.com:8000'):
         self.controller = controller
         self.server = server
         self.http_session = None

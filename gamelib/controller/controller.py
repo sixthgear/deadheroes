@@ -31,12 +31,19 @@ class Controller(pyglet.window.Window):
         self.show_fps = True
         self.timer = fixedsteploop.FixedStepLoop(self.update, self.DT, self.DT*2)
         self.session = Session(self)
+        self.player_data = {}
+
+
+    def refresh_player_data(self):
+        self.player_data = self.session.get_player()
 
     def switch(self, name, persist=False, state=None):
         """
         This function will switch contexts between different input/rending controllers.
         """
         
+        self.refresh_player_data()
+
         if self.current_state:
             self.remove_handlers(self.current_state)
             self.remove_handlers(self.current_state.keys)
@@ -59,11 +66,7 @@ class Controller(pyglet.window.Window):
         self.switch('login', persist=False, state=login_screen)
 
     def on_login(self, user, password):        
-        self.session.login(user, password)
-        self.player_data = self.session.get_player()
-        print self.player_data
-
-
+        self.session.login(user, password)        
         self.menu()
 
     def on_no_connection(self):
@@ -77,7 +80,7 @@ class Controller(pyglet.window.Window):
         if self.states.has_key('login'):
             self.states['login'].on_login_failure()
 
-    def menu(self):
+    def menu(self):        
         self.switch('menu', persist=False, state=menu.Menu(window=self))
 
     def edit(self, dungeon=None):

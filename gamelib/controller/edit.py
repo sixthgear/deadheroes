@@ -79,6 +79,8 @@ class Editor(object):
             # defer(self.window.menu)
 
         if symbol == key.TAB:
+            self.map.save()
+            self.save()
             defer(self.window.play, self.map)            
 
         # clear map
