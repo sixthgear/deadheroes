@@ -121,7 +121,7 @@ class Game(object):
                 c.collide_obj(self.map.player)
 
             # rehash player in new position                
-            self.map.hash_object(self.map.player)                
+            self.map.hash_object(self.map.player)
         
         for o in self.map.objects:
 
@@ -133,7 +133,7 @@ class Game(object):
 
             # rehash all objects in new position
             # TODO: skip this for static objects
-            for o in self.map.objects:            
+            for o in self.map.objects:
                 self.map.hash_object(o)
     
         # ---
@@ -163,13 +163,13 @@ class Game(object):
         """
         Non-gameplay related keys.
         """
-        if symbol == key.ESCAPE:            
+        if symbol == key.ESCAPE:
             self.map.save()
             defer(self.window.menu)
         elif symbol == key.TAB:
             defer(self.window.edit, self.map)
-        elif symbol == key.ENTER and not self.playing:            
-            self.init_state()            
+        elif symbol == key.ENTER and not self.playing:
+            self.init_state()
         
     def cleanup(self):
         """

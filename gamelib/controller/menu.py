@@ -21,14 +21,14 @@ class Menu(object):
         'money': text.Label(
             '1,000,000 EVIL DOLLARS', 
             x=160, y=768, 
-            font_size=12, font_name="Arial", anchor_x='left', anchor_y='center', 
+            font_size=12, font_name='DYLOVASTUFF', anchor_x='left', anchor_y='center', 
             color=(100,100,100,255),
             batch=self._label_batch),  
 
         'title': text.Label(
             'RAID A DUNGEON', 
             x=640, y=768, 
-            font_size=24, font_name="Arial", anchor_x='center', anchor_y='center',
+            font_size=24, font_name='DYLOVASTUFF', anchor_x='center', anchor_y='center',
             color=(100,100,100,255),
             batch=self._label_batch),        
         }
@@ -71,6 +71,14 @@ class Menu(object):
         if symbol == key.ESCAPE:
             pyglet.app.exit()
 
+    def on_mouse_motion(self, x, y, dx, dy):
+        for d in self.dungeons_widgets:
+            if collide.AABB_to_AABB(Point(x,y), 0, 0, Point(d.x, d.y), 800, 24):
+                for t in d.labels.values():
+                    t.color=(0,0,0,255)
+            else:
+                for t in d.labels.values():
+                    t.color=(100,100,100,255)
     def on_mouse_press(self, x, y, button, modifiers):
         
         for d in self.dungeons_widgets:

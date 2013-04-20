@@ -25,7 +25,7 @@ class HUD(object):
             'money': text.Label(
                 '1,000,000 EVIL DOLLARS', 
                 x=160, y=768, 
-                font_size=12, font_name="Arial", anchor_x='left', anchor_y='center', 
+                font_size=12, font_name='DYLOVASTUFF', anchor_x='left', anchor_y='center', 
                 color=(100,100,100,255),
                 batch=self._label_batch),  
 
@@ -42,9 +42,9 @@ class HUD(object):
             #     font_size=12, font_name="Arial", anchor_x='right', anchor_y='center',  
             #     color=(100,100,100,255),
             #     batch=self._label_batch),
-            'z': text.Label('Z', x=32, y=768, anchor_x='center', anchor_y='center', font_size=12, font_name="Arial", color=(0,0,0,255), batch=self._label_batch),
-            'x': text.Label('X', x=76, y=768, anchor_x='center', anchor_y='center', font_size=12, font_name="Arial", color=(0,0,0,255), batch=self._label_batch),
-            'c': text.Label('C', x=120, y=768, anchor_x='center', anchor_y='center', font_size=12, font_name="Arial", color=(0,0,0,255), batch=self._label_batch),
+            'z': text.Label('Z', x=32, y=768, anchor_x='center', anchor_y='center', font_size=12, font_name='DYLOVASTUFF', color=(0,0,0,255), batch=self._label_batch),
+            'x': text.Label('X', x=76, y=768, anchor_x='center', anchor_y='center', font_size=12, font_name='DYLOVASTUFF', color=(0,0,0,255), batch=self._label_batch),
+            'c': text.Label('C', x=120, y=768, anchor_x='center', anchor_y='center', font_size=12, font_name='DYLOVASTUFF', color=(0,0,0,255), batch=self._label_batch),
         }
 
 

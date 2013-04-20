@@ -1,7 +1,8 @@
 import pyglet
 from pyglet import text
 from pyglet import graphics
-from gamelib.util_hax import defer
+from gamelib.util_hax import defer, prettydate
+
 
 class Rectangle(object):
     '''Draws a rectangle into a batch.'''
@@ -87,13 +88,13 @@ class DungeonListingWidget(Widget):
             batch=batch), 
 
         'age': text.Label(
-            '%d' % age, 
+            '%s' % prettydate(int(age)),
             x=x+400, y=y, 
             font_size=12, font_name="Arial", anchor_x='left', anchor_y='bottom', 
             color=(100,100,100,255),
             batch=batch), 
 
-        'title': text.Label(
+        'attempts': text.Label(
             '%d' % attempts, 
             x=x+600, y=y, 
             font_size=12, font_name="Arial", anchor_x='left', anchor_y='bottom', 

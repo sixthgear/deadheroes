@@ -17,7 +17,6 @@ class Door(obj.GameObject):
             self.won = True
     
 class Chest(obj.GameObject):
-
     tex_index       = 0x72
     width           = 30
     height          = 27
@@ -28,7 +27,7 @@ class Chest(obj.GameObject):
         self.sprite.image = obj.sprites[0x73]
         self.sprite.image.anchor_x = self.width / 2 
         self.sprite.image.anchor_y = self.height / 2
-        self.sprite.set_position(self.pos.x+ self.width/2, self.pos.y+self.height/2)
+        self.sprite.set_position(self.pos.x+self.width/2, self.pos.y+self.height/2)
         o.treasure_collected = True
 
 class Anvil(obj.GameObject):

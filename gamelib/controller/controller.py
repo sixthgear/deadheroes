@@ -7,6 +7,9 @@ from gamelib.network import Session
 from gamelib.objects import fx
 from gamelib.controller import login, menu, edit, play, replay
 
+pyglet.resource.add_font('DYLOVASTUFF.ttf')
+pyglet.font.load('DYLOVASTUFF')
+
 class Controller(pyglet.window.Window):
 
     DT = 1 / 60.0
@@ -74,12 +77,12 @@ class Controller(pyglet.window.Window):
         self.switch('menu', persist=False, state=menu.Menu(window=self))
 
     def edit(self, dungeon=None):
-        print 'switching to edit'
-        if self.states.has_key('edit'):
-            self.states['edit'].map.init_state()
-            self.switch('edit', persist=True)
-        else:            
-            self.switch('edit', persist=True, state=edit.Editor(window=self, dungeon=dungeon))
+        # print 'switching to edit'
+        # if self.states.has_key('edit'):
+        #     self.states['edit'].map.init_state()
+        #     self.switch('edit', persist=True)
+        # else:                    
+        self.switch('edit', persist=False, state=edit.Editor(window=self, dungeon=dungeon))
 
 
     def load(self, dungeon_id):
