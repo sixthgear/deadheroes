@@ -90,9 +90,12 @@ class Session(object):
             return None
 
     @SessionCheck
-    def get_dungeon(self, dungeon_id=''):
-        frag = urlparse.urljoin(urls['dungeon'], dungeon_id)
-        url = urlparse.urljoin(self.server, frag)
+    def get_dungeon(self, dungeon_id=None):
+        if dungeon_id:
+            frag = urlparse.urljoin(urls['dungeon'], dungeon_id)
+            url = urlparse.urljoin(self.server, frag)
+        else:
+            url = urlparse.urljoin(self.server, urls['dungeon'])
 
         try:
             resp = self.http_session.get(url)
@@ -118,7 +121,7 @@ class Session(object):
             return False
 
         if resp.status_code == requests.codes.ok:
-            return True
+            return resp.text
 
         return False
 

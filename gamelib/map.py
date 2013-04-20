@@ -87,12 +87,12 @@ class Map(object):
 
     tiles_tex = pyglet.resource.texture('tiles.png')
 
-    def __init__(self, width, height):
+    def __init__(self, width, height, name=''):
         """
         Creates a new blank map.
         """
         self.dungeon_id = ''    # the map id from the server
-        self.name = ''          # the name of the dungeoneer who created this
+        self.name = name        # the name of the dungeoneer who created this
         self.width = width      # width of this map in tiles
         self.height = height    # height of this map in tiles
         self.deaths = 0         # the number of players to meet their demise here

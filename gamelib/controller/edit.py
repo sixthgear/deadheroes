@@ -40,11 +40,7 @@ class Editor(object):
             'budget': self.window.player_data['wealth'] # TODO LOAD THIS FORM SERVER
         }
         self.hud.alter_budget(self.state['budget'])
-        
-                
         self.init_gl()
-
-
 
     def init_gl(self):
         glEnable(GL_BLEND)
@@ -80,12 +76,14 @@ class Editor(object):
 
         if symbol == key.TAB:
             self.map.save()
-            if self.save():
+            dungeon_id = self.save()
+            if dungeon_id:
                 self.window.refresh_player_data()
+                self.map.dungeon_id = dungeon_id
+                self.map.name = self.window.player_data['name']
                 defer(self.window.play, self.map)
             else:
                 print 'Error: the map couldn\'t be saved!'
-
 
         # clear map
         if symbol == key.C:
