@@ -44,7 +44,9 @@ class Menu(object):
                 x=64,
                 y=600 - (i - self.page_start) * 24,
                 id=self.dungeons[i]['id'], 
+                username=self.dungeons[i]['username'], 
                 age=self.dungeons[i]['age'], 
+                value=4000,
                 attempts=self.dungeons[i]['attempts'], 
                 batch=self._label_batch
             )                

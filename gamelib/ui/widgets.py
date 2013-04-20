@@ -69,7 +69,7 @@ class TextWidget(Widget):
 
 class DungeonListingWidget(Widget):
 
-    def __init__(self, x, y, id, age, attempts, batch):
+    def __init__(self, x, y, id, username, age, value, attempts, batch):
 
         # self.id = id
         # self.age = age
@@ -81,23 +81,30 @@ class DungeonListingWidget(Widget):
 
         self.labels = {
         'title': text.Label(
-            'Dungeon %s' % id, 
+            '%s' % username, 
             x=x, y=y, 
-            font_size=12, font_name="Arial", anchor_x='left', anchor_y='bottom', 
+            font_size=16, font_name="DYLOVASTUFF", anchor_x='left', anchor_y='bottom', 
             color=(100,100,100,255),
             batch=batch), 
 
         'age': text.Label(
             '%s' % prettydate(int(age)),
             x=x+400, y=y, 
-            font_size=12, font_name="Arial", anchor_x='left', anchor_y='bottom', 
+            font_size=16, font_name="DYLOVASTUFF", anchor_x='left', anchor_y='bottom', 
+            color=(100,100,100,255),
+            batch=batch), 
+
+        'value': text.Label(
+            '$%d' % value,
+            x=x+300, y=y, 
+            font_size=16, font_name="DYLOVASTUFF", anchor_x='left', anchor_y='bottom', 
             color=(100,100,100,255),
             batch=batch), 
 
         'attempts': text.Label(
             '%d' % attempts, 
             x=x+600, y=y, 
-            font_size=12, font_name="Arial", anchor_x='left', anchor_y='bottom', 
+            font_size=16, font_name="DYLOVASTUFF", anchor_x='left', anchor_y='bottom', 
             color=(100,100,100,255),
             batch=batch), 
         }
