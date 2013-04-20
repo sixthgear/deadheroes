@@ -58,8 +58,12 @@ class Controller(pyglet.window.Window):
         login_screen = login.Login(window=self)
         self.switch('login', persist=False, state=login_screen)
 
-    def on_login(self, user, password):
+    def on_login(self, user, password):        
         self.session.login(user, password)
+        self.player_data = self.session.get_player()
+        print self.player_data
+
+
         self.menu()
 
     def on_no_connection(self):

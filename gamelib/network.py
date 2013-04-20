@@ -54,6 +54,25 @@ class Session(object):
     def is_logged_in(self):
         return self.http_session != None
 
+
+    @SessionCheck
+    def get_player(self):
+        
+        url = urlparse.urljoin(self.server, urls['player'])
+
+        try:
+            resp = self.http_session.get(url)
+        except requests.exceptions.RequestException:
+            return None
+
+        if resp.status_code == requests.codes.ok:
+            try:
+                return json.loads(resp.text)
+            except AttributeError:
+                return None
+
+        return None
+
     @SessionCheck
     def dungeons(self):
         url = urlparse.urljoin(self.server, urls['list_dungeons'])

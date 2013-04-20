@@ -18,9 +18,9 @@ class Menu(object):
         self._label_batch = graphics.Batch()
 
         self.labels = {
-        'money': text.Label(
-            '1,000,000 EVIL DOLLARS', 
-            x=160, y=768, 
+        'wealth': text.Label(
+            '{}: {} EVIL DOLLARS'.format(self.window.player_data['name'], self.window.player_data['wealth']), 
+            x=64, y=768, 
             font_size=12, font_name='DYLOVASTUFF', anchor_x='left', anchor_y='center', 
             color=(100,100,100,255),
             batch=self._label_batch),  
