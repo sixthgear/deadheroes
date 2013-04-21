@@ -87,7 +87,7 @@ class RocketLauncher(obj.GameObject):
 
         delta = self.pos - player.pos
             
-        if not self.rocket and delta.magnitude_sq < 500*500:
+        if not self.rocket and delta.magnitude_sq < 250000:
             self.rocket = Rocket(self.pos.x+16, self.pos.y+16, self, player)
             self.rocket.acc = delta.normal * 500
             map.spawn_object(self.rocket)
@@ -131,7 +131,7 @@ class Rocket(obj.GameObject):
         vel = (self.pos - self.pos0)
         self.sprite.rotation = vel.angle        
 
-    def ai(self, player, map):
+    def ai_priority(self, player, map):
 
         if not player.alive:
             return

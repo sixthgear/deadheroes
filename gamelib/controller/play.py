@@ -127,7 +127,12 @@ class Game(object):
         # perform ai tick every 1/12 second
         if self.tick % 10 == 0:
             for o in self.map.objects:
-                o.ai(self.map.player, self.map)
+                o.ai_priority(self.map.player, self.map)
+
+            if self.tick % 30 == 0:
+                for o in self.map.objects:
+                    o.ai(self.map.player, self.map)
+
 
         # Perform all collision checks we need for this frame.
         # - collide player against 6 possible intersecting map tiles

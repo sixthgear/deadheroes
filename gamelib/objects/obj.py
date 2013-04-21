@@ -100,8 +100,11 @@ class GameObject(object):
     def collide_map(self, t):
         pass        
 
-    def ai(self, map, player):
+    def ai_priority(self, map, player):
         pass
+
+    def ai(self, map, player):
+        pass        
 
     def die(self):
         self.alive = False        

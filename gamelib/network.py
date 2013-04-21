@@ -6,11 +6,11 @@ import pyglet
 from gamelib.util_hax import defer
 
 urls = {
-    "login": "register/",
-    "player": "player/",
-    "list_dungeons": "dungeons/",
-    "dungeon": "dungeon/",
-    "replay": "completion/"
+    "login":                       "register/",
+    "player":                      "player/",
+    "list_dungeons":               "dungeons/",
+    "dungeon":                     "dungeon/",
+    "replay":                      "completion/"
 }
 
 def SessionCheck(func):
@@ -152,7 +152,7 @@ class Session(object):
             'replay': replay,
             'player_win': str(won).lower()
         }
-        print data
+        
         try:
             resp = self.http_session.post(url, data)
         except requests.exceptions.RequestException:

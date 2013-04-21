@@ -25,17 +25,29 @@ class Login(object):
         self.batch = pyglet.graphics.Batch()
         self.focused = None
 
-        self.status =  pyglet.text.Label(STATUS['login'], x = 10, y = 140,
+        pyglet.text.Label(
+            'THE HEROES ARE ', 
+            x=640, y=500, 
+            font_size=36, font_name='DYLOVASTUFF', anchor_x='center', anchor_y='bottom',
+            color=(100, 100, 100, 255), batch = self.batch)
+
+        pyglet.text.Label(
+            'DEAD', 
+            x=640, y=520, 
+            font_size=120, font_name='DYLOVASTUFF', anchor_x='center', anchor_y='top',
+            color=(150, 100, 100, 255), batch=self.batch)
+
+        self.status =  pyglet.text.Label(STATUS['login'], x = 550, y = 220, font_name='DYLOVASTUFF',
             color=(0, 0, 0, 255), batch = self.batch)
 
-        pyglet.text.Label('Name:', x = 10, y = 100,
+        pyglet.text.Label('NAME', x = 454, y = 303, font_name='DYLOVASTUFF',
             color=(0, 0, 0, 255), batch = self.batch)
-        pyglet.text.Label('Password:', x = 10, y = 60,
+        pyglet.text.Label('PASSWORD', x = 454, y = 263, font_name='DYLOVASTUFF',
             color=(0, 0, 0, 255), batch = self.batch)
 
         self.widgets = {
-            'user': TextWidget('', 200, 100, self.window.width - 210, self.batch),
-            'password': TextWidget('', 200, 60, self.window.width - 210, self.batch)
+            'user': TextWidget('', 550, 300, 260, self.batch),
+            'password': TextWidget('', 550, 260, 260, self.batch)
         }
 
         self.set_focus(self.widgets['user'])

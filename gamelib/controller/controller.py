@@ -82,15 +82,9 @@ class Controller(pyglet.window.Window):
         self.refresh_player_data()
         self.switch('menu', persist=False, state=menu.Menu(window=self))
 
-    def edit(self, dungeon=None):
-        # print 'switching to edit'
-        # if self.states.has_key('edit'):
-        #     self.states['edit'].map.init_state()
-        #     self.switch('edit', persist=True)
-        # else:
+    def edit(self, dungeon=None):        
         self.refresh_player_data()
         self.switch('edit', persist=False, state=edit.Editor(window=self, dungeon=dungeon))        
-
 
     def load(self, name, dungeon_id=None):
         data = self.session.get_dungeon(dungeon_id)
@@ -147,6 +141,5 @@ class Controller(pyglet.window.Window):
         Setup the environment and run with it.
         """
         self.setup_gl()
-        self.login()
-        # self.edit()
+        self.login()        
         pyglet.app.run()
