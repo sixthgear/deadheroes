@@ -37,9 +37,10 @@ class Editor(object):
         self.ghost_cursor.opacity = 128
 
         self.state = {
-            'budget': self.window.player_data['wealth'] # TODO LOAD THIS FORM SERVER
+            'budget': 0, # self.window.player_data['wealth'] # TODO LOAD THIS FORM SERVER
+            'wealth': self.window.player_data['wealth']
         }
-        self.hud.alter_budget(self.state['budget'])
+        self.hud.alter_budget(self.state['budget'], self.state['wealth'])
         self.init_gl()
 
     def init_gl(self):
@@ -176,7 +177,7 @@ class Editor(object):
         elif self.mode == MODE_OBJ and button == 4:            
             self.map.unplace(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, state=self.state)
 
-        self.hud.alter_budget(self.state['budget'])
+        self.hud.alter_budget(self.state['budget'], self.state['wealth'])
                         
     def on_mouse_release(self, x, y, button, modifiers):
         pass

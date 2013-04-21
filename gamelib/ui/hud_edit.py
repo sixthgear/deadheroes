@@ -22,11 +22,19 @@ class HUD(object):
         self._label_batch = pyglet.graphics.Batch()
 
         self.labels = {
+
+            'wealth': text.Label(
+                '0 EVIL DOLLARS', 
+                x=160, y=768, 
+                font_size=14, font_name='DYLOVASTUFF', anchor_x='left', anchor_y='bottom', 
+                color=(20,20,20,255),
+                batch=self._label_batch),  
+
             'budget': text.Label(
                 '0 EVIL DOLLARS', 
                 x=160, y=768, 
-                font_size=12, font_name='DYLOVASTUFF', anchor_x='left', anchor_y='center', 
-                color=(100,100,100,255),
+                font_size=12, font_name='DYLOVASTUFF', anchor_x='left', anchor_y='top', 
+                color=(100,0,0,255),
                 batch=self._label_batch),  
 
             'title': text.Label(
@@ -47,8 +55,15 @@ class HUD(object):
             'e': text.Label('E', x=120, y=768, anchor_x='center', anchor_y='center', font_size=12, font_name='DYLOVASTUFF', color=(0,0,0,255), batch=self._label_batch),
         }
 
-    def alter_budget(self, budget):
-        self.labels['budget'].text = '{} EVIL DOLLARS'.format(budget)
+    def alter_budget(self, budget, wealth):
+        self.labels['wealth'].text = 'WEALTH: {} EVIL DOLLARS'.format(wealth)
+        if budget < 0:
+            self.labels['budget'].text = 'BUDGET: +{} EVIL DOLLARS'.format(abs(budget))
+            self.labels['budget'].color=(0,100,0,255) 
+        else:
+            self.labels['budget'].text = 'BUDGET: ({}) EVIL DOLLARS'.format(budget)
+            self.labels['budget'].color=(100,0,0,255) 
+
 
     def rect(self, x0, y0, x1, y1):
         return [x0, y0, x0, y1, x1, y1, x1, y0]        

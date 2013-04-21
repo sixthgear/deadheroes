@@ -88,6 +88,7 @@ class Controller(pyglet.window.Window):
         #     self.states['edit'].map.init_state()
         #     self.switch('edit', persist=True)
         # else:
+        self.refresh_player_data()
         self.switch('edit', persist=False, state=edit.Editor(window=self, dungeon=dungeon))        
 
 
@@ -99,6 +100,7 @@ class Controller(pyglet.window.Window):
             return None
 
     def play(self, dungeon):
+        self.refresh_player_data()
         self.switch('play', persist=False, state=play.Game(window=self, dungeon=dungeon))
 
     def replay(self, map, rep):

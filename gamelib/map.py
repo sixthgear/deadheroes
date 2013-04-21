@@ -95,7 +95,7 @@ class Map(object):
         self.name = name        # the name of the dungeoneer who created this
         self.width = width      # width of this map in tiles
         self.height = height    # height of this map in tiles
-        self.deaths = 0         # the number of players to meet their demise here
+        self.deaths = 0         # the number of players to meet their demise here        
 
         # create grid
         self.grid = [Tile(t%width, t/width, type=T_EMPTY) for t in range(width*height) ]
@@ -271,10 +271,10 @@ class Map(object):
         if state:
             delta = TILE_INFO[type][0] # buy new tile
             delta -= TILE_INFO[tile.type][0] # sell old tile
-            if state['budget'] - delta < 0:
+            if state['budget'] + delta > state['wealth']:
                 return False # cant afford it!
             else:
-                state['budget'] -= delta
+                state['budget'] += delta
 
         # switch the tile edges if necessary
         if type != T_EMPTY and tile.type == T_EMPTY or type == T_EMPTY and tile.type != T_EMPTY:
@@ -328,10 +328,10 @@ class Map(object):
             self.spawn_player()
         else:
             if state:
-                if state['budget'] - INFO[type].price < 0:
+                if state['budget'] + INFO[type].price > state['wealth']:
                     return # can't afford it!
                 else:
-                    state['budget'] -= INFO[type].price
+                    state['budget'] += INFO[type].price
             # add to spawn list
             self.object_spawn_list[y0*self.width+x0] = type
 
@@ -346,7 +346,7 @@ class Map(object):
         existing = self.object_spawn_list.get(y*self.width+x, None)
         if existing:
             if state:
-                state['budget'] += INFO[existing].price
+                state['budget'] -= INFO[existing].price
             target_obj = None
             for o in tile.objects:
                 if o.pos.x / MAP_TILESIZE == x and o.pos.y / MAP_TILESIZE == y:
