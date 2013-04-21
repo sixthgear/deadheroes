@@ -78,7 +78,7 @@ class Editor(object):
             self.map.save()
             dungeon_id = self.save()
             if dungeon_id:
-                self.window.refresh_player_data()
+                # self.window.refresh_player_data()
                 self.map.dungeon_id = dungeon_id
                 self.map.name = self.window.player_data['name']
                 defer(self.window.play, self.map)
