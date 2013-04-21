@@ -33,16 +33,13 @@ class Menu(object):
             batch=self._label_batch),        
         }
 
-        self.load_dungeons()
-
-    def load_dungeons(self):
         self.page_start = 0
 
         self.dungeons = self.window.session.dungeons()
         self.dungeons_widgets = []
 
         for i in range(self.page_start, min(len(self.dungeons), self.page_start+self.per_page)):
-        
+
             d = DungeonListingWidget(
                 x=64,
                 y=600 - (i - self.page_start) * 24,
@@ -52,11 +49,9 @@ class Menu(object):
                 value=self.dungeons[i]['value'],
                 attempts=self.dungeons[i]['attempts'], 
                 batch=self._label_batch
-            )                
+            )
             self.dungeons_widgets.append(d)
             self.window.push_handlers(d)
-            
-        print self.dungeons
 
     def update(self, dt):
         pass
@@ -77,7 +72,7 @@ class Menu(object):
             else:
                 defer(self.window.edit)
         if symbol == key.R: # Refresh
-            self.load_dungeons()
+            defer(self.window.menu)
 
         if symbol == key.ESCAPE:
             pyglet.app.exit()
