@@ -127,21 +127,21 @@ class DungeonListingWidget(Widget):
 
         'value': text.Label(
             '%s' % value,
-            x=x+400, y=y, 
+            x=x+200, y=y, 
             font_size=16, font_name="DYLOVASTUFF", anchor_x='right', anchor_y='bottom', 
             color=color,
             batch=batch), 
 
         'age': text.Label(
             '%s' % age,
-            x=x+430, y=y, 
+            x=x+230, y=y, 
             font_size=16, font_name="DYLOVASTUFF", anchor_x='left', anchor_y='bottom', 
             color=color,
             batch=batch), 
     
         'attempts': text.Label(
             '%s' % attempts, 
-            x=x+650, y=y, 
+            x=x+400, y=y, 
             font_size=16, font_name="DYLOVASTUFF", anchor_x='right', anchor_y='bottom', 
             color=color,
             batch=batch), 

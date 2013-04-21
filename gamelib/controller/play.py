@@ -204,17 +204,20 @@ class Game(object):
             # self.map.save()
             if self.map.name == self.window.player_data['name']:                
                 self.map.init_state()
-                defer(self.window.edit, self.map)
+                defer(self.window.edit, self.map)                
             else:
                 defer(self.window.menu)
+
         elif symbol == key.ESCAPE and self.playing:
             self.map.player.die()
 
         elif symbol == key.TAB:
             pass
             # defer(self.window.edit, self.map)
+
         elif symbol == key.SPACE and not self.playing and not self.map.player.alive and not self.intro:
             self.init_state()
+
         elif self.intro:
             self.hud.play()
             self.playing = True
