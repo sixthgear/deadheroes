@@ -2,7 +2,7 @@ import pyglet
 from pyglet import text
 from pyglet import graphics
 from pyglet.window import key
-from gamelib.util_hax import defer
+from gamelib.util_hax import defer, prettydate
 from gamelib.ui.widgets import DungeonListingWidget
 from gamelib import collide
 from gamelib.objects.obj import Point
@@ -33,6 +33,18 @@ class Menu(object):
             batch=self._label_batch),        
         }
 
+        self.header = DungeonListingWidget(
+            x=64,
+            y=624,
+            id=0,
+            username='Dungeoneer',
+            age='Age', 
+            value='Wealth', 
+            attempts='Tries', 
+            color=(0,0,0,255),
+            batch=self._label_batch
+        )
+
         self.page_start = 0
 
         self.dungeons = self.window.session.dungeons()
@@ -45,8 +57,8 @@ class Menu(object):
                 y=600 - (i - self.page_start) * 24,
                 id=self.dungeons[i]['id'], 
                 username=self.dungeons[i]['username'], 
-                age=self.dungeons[i]['age'], 
-                value=self.dungeons[i]['value'],
+                age=prettydate(int(self.dungeons[i]['age'])),
+                value='${}'.format(self.dungeons[i]['value']),
                 attempts=self.dungeons[i]['attempts'], 
                 batch=self._label_batch
             )

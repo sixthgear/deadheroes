@@ -1,7 +1,7 @@
 import pyglet
 from pyglet import text
 from pyglet import graphics
-from gamelib.util_hax import defer, prettydate
+from gamelib.util_hax import defer
 
 
 class Rectangle(object):
@@ -69,7 +69,7 @@ class TextWidget(Widget):
 
 class DungeonListingWidget(Widget):
 
-    def __init__(self, x, y, id, username, age, value, attempts, batch):
+    def __init__(self, x, y, id, username, age, value, attempts, batch, color=(100,100,100,255)):
 
         # self.id = id
         # self.age = age
@@ -85,27 +85,27 @@ class DungeonListingWidget(Widget):
             '%s' % username, 
             x=x, y=y, 
             font_size=16, font_name="DYLOVASTUFF", anchor_x='left', anchor_y='bottom', 
-            color=(100,100,100,255),
+            color=color,
             batch=batch), 
 
         'age': text.Label(
-            '%s' % prettydate(int(age)),
+            '%s' % age,
             x=x+400, y=y, 
             font_size=16, font_name="DYLOVASTUFF", anchor_x='left', anchor_y='bottom', 
-            color=(100,100,100,255),
+            color=color,
             batch=batch), 
 
         'value': text.Label(
-            '$%d' % value,
+            '%s' % value,
             x=x+300, y=y, 
             font_size=16, font_name="DYLOVASTUFF", anchor_x='left', anchor_y='bottom', 
-            color=(100,100,100,255),
+            color=color,
             batch=batch), 
 
         'attempts': text.Label(
-            '%d' % attempts, 
+            '%s' % attempts, 
             x=x+600, y=y, 
             font_size=16, font_name="DYLOVASTUFF", anchor_x='left', anchor_y='bottom', 
-            color=(100,100,100,255),
+            color=color,
             batch=batch), 
         }
