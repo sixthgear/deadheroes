@@ -3,7 +3,7 @@ from pyglet.gl import *
 from pyglet.window import key
 from pyglet import clock
 from gamelib import collide
-from gamelib.ui.widgets import TextWidget
+from gamelib.ui.widgets import TextWidget, Button
 from gamelib.util_hax import defer
 
 STATUS = {
@@ -27,17 +27,17 @@ class Login(object):
 
         pyglet.text.Label(
             'THE HEROES ARE ', 
-            x=640, y=500, 
-            font_size=36, font_name='DYLOVASTUFF', anchor_x='center', anchor_y='bottom',
+            x=454, y=500, 
+            font_size=36, font_name='DYLOVASTUFF', anchor_x='left', anchor_y='bottom',
             color=(100, 100, 100, 255), batch = self.batch)
 
         pyglet.text.Label(
             'DEAD', 
-            x=640, y=520, 
-            font_size=120, font_name='DYLOVASTUFF', anchor_x='center', anchor_y='top',
+            x=454, y=520, 
+            font_size=120, font_name='DYLOVASTUFF', anchor_x='left', anchor_y='top',
             color=(150, 100, 100, 255), batch=self.batch)
 
-        self.status =  pyglet.text.Label(STATUS['login'], x = 550, y = 220, font_name='DYLOVASTUFF',
+        self.status =  pyglet.text.Label(STATUS['login'], x = 550, y = 332, font_name='DYLOVASTUFF',
             color=(0, 0, 0, 255), batch = self.batch)
 
         pyglet.text.Label('NAME', x = 454, y = 303, font_name='DYLOVASTUFF',
@@ -47,12 +47,24 @@ class Login(object):
 
         self.widgets = {
             'user': TextWidget('', 550, 300, 260, self.batch),
-            'password': TextWidget('', 550, 260, 260, self.batch)
+            'password': TextWidget('', 550, 260, 260, self.batch),            
         }
 
-        self.set_focus(self.widgets['user'])
+        self.buttons = {
+            'login': Button('LOGIN', 710, 200, 100, 32, batch=self.batch, callback=self.login),
+            'register': Button('REGISTER', 570, 200, 120, 32, batch=self.batch, callback=self.login)
+        }
 
+        self.window.push_handlers(self.buttons['login'])
+        self.window.push_handlers(self.buttons['register'])
+
+        self.set_focus(self.widgets['user'])
         self.init_gl()
+
+    def login(self):
+        user = self.widgets['user'].get_text()
+        password = self.widgets['password'].get_text()
+        defer(self.window.on_login, user, password)
 
     def init_gl(self):
         glEnable(GL_BLEND)
@@ -88,10 +100,7 @@ class Login(object):
             if self.focused == self.widgets['user']:
                 self.set_focus(self.widgets['password'])
             else:
-                user = self.widgets['user'].get_text()
-                password = self.widgets['password'].get_text()
-
-                defer(self.window.on_login, user, password)
+                self.login()
             return
 
         if symbol == key.TAB:
@@ -118,13 +127,16 @@ class Login(object):
             self.focused.on_mouse_drag(x, y, dx, dy, buttons, modifiers)
 
     def on_mouse_press(self, x, y, button, modifiers):
+
         for widget in self.widgets.values():
             if widget.hit_test(x, y):
                 self.set_focus(widget)
                 widget.on_mouse_press(x, y, button, modifiers)
-                return
+                return True
         else:
             self.set_focus(None)
+            return False
+
 
     def set_focus(self, widget):
         if self.focused:
@@ -144,4 +156,5 @@ class Login(object):
         self.status.text = STATUS['down']
 
     def cleanup(self):
-        pass
+        self.window.remove_handlers(self.buttons['login'])
+        self.window.remove_handlers(self.buttons['register'])

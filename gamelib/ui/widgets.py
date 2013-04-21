@@ -6,25 +6,62 @@ from gamelib.util_hax import defer
 
 class Rectangle(object):
     '''Draws a rectangle into a batch.'''
-    def __init__(self, x1, y1, x2, y2, batch):
+    def __init__(self, x1, y1, x2, y2, batch=None, color=(200, 200, 220, 255)):
         self.vertex_list = batch.add(4, pyglet.gl.GL_QUADS, None,
             ('v2i', [x1, y1, x2, y1, x2, y2, x1, y2]),
-            ('c4B', [200, 200, 220, 255] * 4)
+            ('c4B', color * 4)
         )
 
 class Widget(object):
 
+        def __init__(self, label, x, y, width, height, batch):
+            self.x = x
+            self.y = y
+            self.width = width
+            self.height = height
+
         def hit_test(self, x, y):
-            return (0 < x - self.layout.x < self.layout.width and 0 < y - self.layout.y < self.layout.height)
+            return (0 < x - self.x < self.width and 0 < y - self.y < self.height)
+
+class Button(Widget):
+
+    def __init__(self, label, x, y, width, height, batch, callback):
+
+        super(Button, self).__init__(label, x, y, width, height, batch)
+
+        self.callback = callback
+        pad = 4
+        self.rect = Rectangle(
+            x - pad, y - pad, 
+            x + width + pad, y + height + pad, 
+            batch=batch, color=(200,200,200,255)
+        )
+        self.label = text.Label(
+            label, 
+            x=x+width/2, y=y+height/2, 
+            font_size=16, font_name="DYLOVASTUFF", anchor_x='center', anchor_y='center', 
+            color=(0,0,0,255),
+            batch=batch)
+
+    def on_mouse_press(self, x, y, button, modifiers):        
+        if self.hit_test(x,y):
+            defer(self.callback)
+            return True
+        else:
+            return False
 
 class TextWidget(Widget):
-    def __init__(self, text, x, y, width, batch):
-        self.document = pyglet.text.document.UnformattedDocument(text)
+
+    def __init__(self, label, x, y, width, batch):
+
+        self.document = pyglet.text.document.UnformattedDocument(label)
         self.document.set_style(0, len(self.document.text),
             dict(color=(0, 0, 0, 255), font_name='DYLOVASTUFF')
         )
         font = self.document.get_font()
         height = font.ascent - font.descent
+
+        super(TextWidget, self).__init__(label, x, y, width, height, batch)
 
         self.layout = pyglet.text.layout.IncrementalTextLayout(
             self.document, width, height, multiline=False, batch=batch)
@@ -34,8 +71,8 @@ class TextWidget(Widget):
         self.layout.y = y
 
         # Rectangular outline
-        pad = 2
-        self.rectangle = Rectangle(x - pad, y - pad,
+        pad = 4
+        self.rect = Rectangle(x - pad, y - pad,
                                    x + width + pad, y + height + pad, batch)
         self.lose_focus()
 
@@ -55,8 +92,8 @@ class TextWidget(Widget):
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
     	self.caret.on_mouse_drag(x, y, dx, dy, buttons, modifiers)
 
-    def on_text(self, text):
-    	self.caret.on_text(text)
+    def on_text(self, label):
+    	self.caret.on_text(label)
 
     def on_text_motion(self, motion):
     	self.caret.on_text_motion(motion)
@@ -88,24 +125,24 @@ class DungeonListingWidget(Widget):
             color=color,
             batch=batch), 
 
-        'age': text.Label(
-            '%s' % age,
-            x=x+400, y=y, 
-            font_size=16, font_name="DYLOVASTUFF", anchor_x='left', anchor_y='bottom', 
-            color=color,
-            batch=batch), 
-
         'value': text.Label(
             '%s' % value,
-            x=x+300, y=y, 
-            font_size=16, font_name="DYLOVASTUFF", anchor_x='left', anchor_y='bottom', 
+            x=x+400, y=y, 
+            font_size=16, font_name="DYLOVASTUFF", anchor_x='right', anchor_y='bottom', 
             color=color,
             batch=batch), 
 
+        'age': text.Label(
+            '%s' % age,
+            x=x+550, y=y, 
+            font_size=16, font_name="DYLOVASTUFF", anchor_x='right', anchor_y='bottom', 
+            color=color,
+            batch=batch), 
+    
         'attempts': text.Label(
             '%s' % attempts, 
-            x=x+600, y=y, 
-            font_size=16, font_name="DYLOVASTUFF", anchor_x='left', anchor_y='bottom', 
+            x=x+650, y=y, 
+            font_size=16, font_name="DYLOVASTUFF", anchor_x='right', anchor_y='bottom', 
             color=color,
             batch=batch), 
         }

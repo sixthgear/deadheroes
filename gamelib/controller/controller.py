@@ -59,8 +59,8 @@ class Controller(pyglet.window.Window):
         self.push_handlers(self.current_state.keys)
 
     def login(self, dt=0.0):
-        login_screen = login.Login(window=self)
-        self.switch('login', persist=False, state=login_screen)
+        login_screen = login.Login(window=self)        
+        self.switch('login', persist=False, state=login_screen)        
 
     def on_login(self, user, password):
         self.session.login(user, password)
