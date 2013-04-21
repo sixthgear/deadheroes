@@ -11,8 +11,8 @@ def prettydate(d):
 
     d = datetime.datetime.utcfromtimestamp(d)
     diff = datetime.datetime.utcnow() - d
-    print datetime.datetime.utcnow(), d, diff, diff.days
-    print '---'
+    # print datetime.datetime.utcnow(), d, diff, diff.days
+    # print '---'
 
     s = diff.seconds
     if diff.days > 7 or diff.days < 0:

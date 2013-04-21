@@ -71,10 +71,10 @@ class Game(object):
         return controls
 
     def upload_replay(self, won):
-        print 'map id->', self.map.dungeon_id
+        # print 'map id->', self.map.dungeon_id
         replay = base64.b64encode(self.replay.tostring())
-        print 'uploading replay ({} bytes, {} seconds): '.format(len(replay), len(replay)/60),
-        print self.window.session.upload_replay(self.window.player_data['name'], self.map.dungeon_id, replay, won=won)
+        # print 'uploading replay ({} bytes, {} seconds): '.format(len(replay), len(replay)/60),
+        # print self.window.session.upload_replay(self.window.player_data['name'], self.map.dungeon_id, replay, won=won)
 
     def update(self, dt2):
         """

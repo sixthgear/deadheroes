@@ -301,9 +301,6 @@ class Map(object):
 
         # switch the tile type if necessary
         if tile.type != type:
-            # print state
-            # print TILE_INFO[tile.type]
-
             tile.type = type
             self._vertex_list_dirty = True
 

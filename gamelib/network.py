@@ -146,7 +146,7 @@ class Session(object):
     @SessionCheck
     def upload_replay(self, username, dungeon_id, replay, won):
         url = urlparse.urljoin(self.server, urls['replay'] + dungeon_id)
-        print url
+        # print url
         data = {
             'username': username,            
             'replay': replay,
