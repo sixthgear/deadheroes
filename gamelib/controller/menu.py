@@ -70,7 +70,7 @@ class Menu(object):
 
         self.dungeons = self.window.session.dungeons()
         self.dungeons_widgets = []
-        print self.dungeons
+        # print self.dungeons
         for i in range(self.page_start, min(len(self.dungeons), self.page_start+self.per_page)):
 
             if self.dungeons[i]['username'] == self.window.player_data['name']:
@@ -84,7 +84,7 @@ class Menu(object):
                     attempts=self.dungeons[i]['attempts'], 
                     batch=self._label_batch
                 )
-                i -=1                
+                
                 continue
 
 

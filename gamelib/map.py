@@ -153,7 +153,10 @@ class Map(object):
         for y in range(m.height):
             for x in range(m.width):
                 i = y * m.width + x
-                m.grid[i] = Tile(x, y, data['grid'][i], data['edges'][i])
+                m.grid[i] = Tile(x, y, data['grid'][i])
+
+
+        m.build_edges()
 
         for key, o in data['objects'].iteritems():
             m.object_spawn_list[int(key)] = o
@@ -164,15 +167,34 @@ class Map(object):
 
         return m
 
+    def build_edges(self):
+
+        for t in self.grid:
+            t.edges = E_NONE
+
+        for y in range(self.height-1):
+            for x in range(self.width-1):
+                tile = self.get(x,y)
+                up, rg = self.up(tile), self.right(tile)
+
+                if tile.is_empty != up.is_empty:
+                    tile.edges |= E_TOP
+                    up.edges |= E_BOTTOM
+
+                if tile.is_empty != rg.is_empty:
+                    tile.edges |= E_RIGHT
+                    rg.edges |= E_LEFT
+
+
     def export_json(self):
         jsondata = json.dumps({
             'width': self.width,
             'height': self.height,
             'grid': [t.type for t in self.grid],
-            'edges': [t.edges for t in self.grid],
+            # 'edges': [t.edges for t in self.grid],
             'objects': self.object_spawn_list,
             'player_spawn': self.player_spawn
-        })
+        }, separators=(',', ':'))
         return jsondata
 
     def save(self):
