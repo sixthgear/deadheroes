@@ -78,6 +78,17 @@ class HUD(object):
         self.labels['gameover'].color=(100,100,100,255)
         self.labels['instructions'].color=(100,100,100,255)
 
+    def validated(self, won=True):
+        if won:
+            self.labels['gameover'].text = 'AWW YEAAH, DUNGEON VALIDATED.'
+            self.labels['instructions'].text = ' PRESS ESC TO RETURN TO EDITOR.'
+        else:
+            self.labels['gameover'].text = 'YOU ARE DEAD.'
+            self.labels['instructions'].text = 'AND YOUR DUNGEON SUCKS. PRESS SPACE TO TRY AGAIN OR ESC TO RETURN TO EDITOR.'
+
+        self.labels['gameover'].color=(100,100,100,255)
+        self.labels['instructions'].color=(100,100,100,255)        
+
     def rect(self, x0, y0, x1, y1):
         return [x0, y0, x0, y1, x1, y1, x1, y0]        
 

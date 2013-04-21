@@ -88,16 +88,22 @@ class Game(object):
             self.map.player.update(dt2)
 
             for d in self.map.doors:
-                if d.won:
-                    self.map.player.won = True
-                    self.hud.gameover(won=True)                    
+                if d.won:                        
+                    self.map.player.won = True                    
                     self.playing = False
                     self.upload_replay(won=True)
+                    if self.map.name == self.window.player_data['name']:
+                        self.hud.validated(won=True)
+                    else:
+                        self.hud.gameover(won=True)
 
-        elif self.playing:
-            self.hud.gameover(won=False)
+        elif self.playing:            
             self.playing = False
             self.upload_replay(won=False)
+            if self.map.name == self.window.player_data['name']:
+                self.hud.validated(won=False)
+            else:
+                self.hud.gameover(won=False)
             # pyglet.clock.schedule_once(self.window.edit, 4.0)
 
         else:
@@ -190,9 +196,14 @@ class Game(object):
         """
         if symbol == key.ESCAPE and not self.playing:
             # self.map.save()
-            defer(self.window.menu)
+            if self.map.name == self.window.player_data['name']:
+                self.map.init_state()
+                defer(self.window.edit, self.map)
+            else:
+                defer(self.window.menu)
         elif symbol == key.ESCAPE and self.playing:
             self.map.player.die()
+
         elif symbol == key.TAB:
             pass
             # defer(self.window.edit, self.map)

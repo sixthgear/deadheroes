@@ -88,7 +88,7 @@ class Controller(pyglet.window.Window):
         #     self.states['edit'].map.init_state()
         #     self.switch('edit', persist=True)
         # else:
-        self.switch('edit', persist=False, state=edit.Editor(window=self, dungeon=dungeon))
+        self.switch('edit', persist=False, state=edit.Editor(window=self, dungeon=dungeon))        
 
 
     def load(self, name, dungeon_id=None):
