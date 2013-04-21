@@ -134,8 +134,8 @@ class DungeonListingWidget(Widget):
 
         'age': text.Label(
             '%s' % age,
-            x=x+550, y=y, 
-            font_size=16, font_name="DYLOVASTUFF", anchor_x='right', anchor_y='bottom', 
+            x=x+430, y=y, 
+            font_size=16, font_name="DYLOVASTUFF", anchor_x='left', anchor_y='bottom', 
             color=color,
             batch=batch), 
     

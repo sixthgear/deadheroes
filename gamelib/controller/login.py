@@ -37,11 +37,12 @@ class Login(object):
             font_size=120, font_name='DYLOVASTUFF', anchor_x='left', anchor_y='top',
             color=(150, 100, 100, 255), batch=self.batch)
 
-        self.status =  pyglet.text.Label(STATUS['login'], x = 550, y = 332, font_name='DYLOVASTUFF',
+        self.status =  pyglet.text.Label(STATUS['login'], x = 550, y = 338, font_name='DYLOVASTUFF',
             color=(0, 0, 0, 255), batch = self.batch)
 
         pyglet.text.Label('NAME', x = 454, y = 303, font_name='DYLOVASTUFF',
             color=(0, 0, 0, 255), batch = self.batch)
+
         pyglet.text.Label('PASSWORD', x = 454, y = 263, font_name='DYLOVASTUFF',
             color=(0, 0, 0, 255), batch = self.batch)
 
@@ -51,8 +52,8 @@ class Login(object):
         }
 
         self.buttons = {
-            'login': Button('LOGIN', 710, 200, 100, 32, batch=self.batch, callback=self.login),
-            'register': Button('REGISTER', 570, 200, 120, 32, batch=self.batch, callback=self.login)
+            'login': Button('LOGIN', 710, 205, 100, 32, batch=self.batch, callback=self.login),
+            'register': Button('REGISTER', 570, 205, 120, 32, batch=self.batch, callback=self.login)
         }
 
         self.window.push_handlers(self.buttons['login'])
