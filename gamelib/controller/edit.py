@@ -37,7 +37,7 @@ class Editor(object):
         self.ghost_cursor.opacity = 128
 
         self.state = {
-            'budget': 0, # self.window.player_data['wealth'] # TODO LOAD THIS FORM SERVER
+            'budget': self.map.pending_budget, # self.window.player_data['wealth'] # TODO LOAD THIS FORM SERVER
             'wealth': self.window.player_data['wealth']
         }
         self.hud.alter_budget(self.state['budget'], self.state['wealth'])
@@ -82,6 +82,7 @@ class Editor(object):
                 # self.window.refresh_player_data()
                 self.map.dungeon_id = dungeon_id
                 self.map.name = self.window.player_data['name']
+                self.map.pending_budget = self.state['budget']
                 defer(self.window.play, self.map)
             else:
                 print 'Error: the map couldn\'t be saved!'

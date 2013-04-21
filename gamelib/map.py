@@ -95,7 +95,8 @@ class Map(object):
         self.name = name        # the name of the dungeoneer who created this
         self.width = width      # width of this map in tiles
         self.height = height    # height of this map in tiles
-        self.deaths = 0         # the number of players to meet their demise here        
+        self.deaths = 0         # the number of players to meet their demise here
+        self.pending_budget = 0
 
         # create grid
         self.grid = [Tile(t%width, t/width, type=T_EMPTY) for t in range(width*height) ]
@@ -129,8 +130,7 @@ class Map(object):
         self.despawn_objects()
         self._object_sprite_batch = pyglet.graphics.Batch()
         self.spawn_objects()
-        self.spawn_player() 
-
+        self.spawn_player()         
         self.doors = []
         for o in self.objects:
             if o.__class__ == INFO[DOOR].cls:

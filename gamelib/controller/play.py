@@ -43,9 +43,9 @@ class Game(object):
         self.playing = False
 
         self.state = {
-            'budget': self.window.player_data['wealth'] 
+            'wealth': self.window.player_data['wealth'] 
         }
-        self.hud.alter_budget(self.state['budget'])
+        self.hud.alter_budget(self.state['wealth'])
 
 
         fx.cleanup()
@@ -93,6 +93,7 @@ class Game(object):
                     self.playing = False
                     self.upload_replay(won=True)
                     if self.map.name == self.window.player_data['name']:
+                        self.map.pending_budget = 0
                         self.hud.validated(won=True)
                     else:
                         self.hud.gameover(won=True)
@@ -196,7 +197,7 @@ class Game(object):
         """
         if symbol == key.ESCAPE and not self.playing:
             # self.map.save()
-            if self.map.name == self.window.player_data['name']:
+            if self.map.name == self.window.player_data['name']:                
                 self.map.init_state()
                 defer(self.window.edit, self.map)
             else:
