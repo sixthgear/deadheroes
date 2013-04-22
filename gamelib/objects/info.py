@@ -13,6 +13,7 @@ MISSILE         = 0x04
 DOOR            = 0x80
 CHEST           = 0x82
 ANVIL           = 0x70
+EMITTER         = 0x32
 
 INFO = {
     PLAYER:     ObjInfo(player.Player, 0),
@@ -20,6 +21,7 @@ INFO = {
     ROBOT:      ObjInfo(monsters.Robot, 200),
     LAUNCHER:   ObjInfo(monsters.RocketLauncher, 500),
     MISSILE:    ObjInfo(monsters.Rocket, 0),
+    EMITTER:    ObjInfo(monsters.Emitter, 500),
     DOOR:       ObjInfo(devices.Door, 0),
     CHEST:      ObjInfo(devices.Chest, 0),
     ANVIL:      ObjInfo(devices.Anvil, 200),

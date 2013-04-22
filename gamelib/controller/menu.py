@@ -107,7 +107,8 @@ class Menu(object):
     def on_draw(self):
         self.window.clear()
         self._label_batch.draw()
-        self.window.fps_display.draw()
+        if self.window.show_fps: 
+            self.window.fps_display.draw()
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.ENTER:
@@ -127,6 +128,8 @@ class Menu(object):
 
     def on_mouse_motion(self, x, y, dx, dy):
         for d in self.dungeons_widgets + [self.player_dungeon_widget]:
+            if not d:
+                continue
             if collide.AABB_to_AABB(Point(x,y), 0, 0, Point(d.x, d.y), 800, 24):
                 for t in d.labels.values():
                     t.color=(0,0,0,255)

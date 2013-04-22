@@ -271,6 +271,9 @@ class Map(object):
             return True            
         return False
 
+    def in_bounds(self, tile):
+        return 0 <= tile.x < self.width and 0 <= tile.y < self.height
+
     def change(self, x, y, type, force=False, state=None):
         """
         Modify the map and mark dirty so we rebuild the vertex list.
@@ -374,7 +377,56 @@ class Map(object):
             del self.object_spawn_list[y*self.width+x]    
     
     def raycast(self, origin, target):
-        pass
+        """
+        http://www.cse.yorku.ca/~amana/research/grid.pdf
+        """
+        delta = target - origin
+        x, y = int(origin.x)/MAP_TILESIZE, int(origin.y)/MAP_TILESIZE
+   
+        # amount to increment each cell by
+        if delta.x < 0:
+            step_x = -1            
+            factor = (origin.x % MAP_TILESIZE) / delta.x
+            tmax_x = (delta*factor).magnitude 
+        elif delta.x > 0:
+            step_x = 1
+            factor = (32 - origin.x % MAP_TILESIZE) / delta.x
+            tmax_x = (delta*factor).magnitude 
+        else:
+            step_x = 0
+            tmax_x = 0.0    # ray length before we cross x boundary
+
+        if delta.y < 0:
+            step_y = -1
+            factor = (origin.y % MAP_TILESIZE) / delta.y
+            tmax_y = (delta*factor).magnitude             
+        elif delta.y > 0:
+            step_y = 1
+            factor = (32 - origin.y % MAP_TILESIZE) / delta.y
+            tmax_y = (delta*factor).magnitude             
+        else:
+            step_y = 0
+            tmax_y = 0.0    # ray length before we cross y boundary
+
+        # ray length to travel one tile horizontally
+        tdelta_x = (delta * (MAP_TILESIZE / delta.x)).magnitude
+        tdelta_y = (delta * (MAP_TILESIZE / delta.y)).magnitude
+
+        while 0 <= x < self.width and 0 <= y < self.height:
+
+            tile = self.get(x, y)
+            
+            if not tile.is_empty:
+                return tile, min(tmax_x, tmax_y)
+
+            if tmax_x < tmax_y: # or step_y == 0
+                tmax_x += tdelta_x
+                x += step_x
+            else:
+                tmax_y += tdelta_y
+                y += step_y
+
+        return None, None
 
     def tiles_from_object(self, obj):
         """

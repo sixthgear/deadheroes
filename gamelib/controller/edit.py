@@ -1,5 +1,6 @@
 # from objects import player
 import random
+from gamelib import vector
 from pyglet.gl import *
 from pyglet.window import key
 from pyglet import clock
@@ -125,11 +126,14 @@ class Editor(object):
             self.selected_object = LAUNCHER
         if symbol == key.T:
             self.mode = MODE_OBJ
-            self.selected_object = DOOR
+            self.selected_object = EMITTER
         if symbol == key.Y:
             self.mode = MODE_OBJ
-            self.selected_object = CHEST
+            self.selected_object = DOOR
         if symbol == key.U:
+            self.mode = MODE_OBJ
+            self.selected_object = CHEST
+        if symbol == key.I:
             self.mode = MODE_OBJ
             self.selected_object = ANVIL
 
@@ -169,6 +173,16 @@ class Editor(object):
     def on_mouse_press(self, x, y, button, modifiers):
         x = max(0, min(self.window.width-1, x))
         y = max(0, min(self.window.height-1, y))        
+
+        if modifiers & (key.MOD_CTRL | key.MOD_COMMAND):
+            v1 = vector.Vec2d(16,16)
+            v2 = vector.Vec2d(x,y)
+            
+            self.hud._label_batch.add(2, GL_LINES, None, ('v2f', [v1.x, v1.y, v2.x, v2.y]), ('c4f', [1,1,1,1,1,1,1,1]))
+            for t in self.map.raycast(v1,v2):
+                self.map.change(t.x, t.y, map.T_BLOCK_CONCRETE)                
+            return
+
         if self.mode == MODE_TILE and button == 1:
             self.map.change(x / map.MAP_TILESIZE, y / map.MAP_TILESIZE, self.selected_tile, state=self.state)
         elif self.mode == MODE_OBJ and button == 1:

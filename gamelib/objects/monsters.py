@@ -85,14 +85,17 @@ class RocketLauncher(obj.GameObject):
         if not player.alive:
             return
 
-        delta = self.pos - player.pos
+        # if not self.rocket and delta.magnitude_sq < 250000:
+        tile, dist = map.raycast(self.center, player.center)
+        delta = player.center - self.center
+        # if ray:
+            # print ray.x, ray.y
+        if not self.rocket and tile and dist > delta.magnitude:
             
-        if not self.rocket and delta.magnitude_sq < 250000:
             self.rocket = Rocket(self.pos.x+16, self.pos.y+16, self, player)
             self.rocket.acc = delta.normal * 500
             map.spawn_object(self.rocket)
     
-
     def rocket_death(self):        
         self.rocket = None
 
@@ -149,3 +152,12 @@ class Rocket(obj.GameObject):
             self.angle -= 20
             self.acc = vector.Vec2d(1200,0)
             self.acc.rotate(self.angle)            
+
+class Emitter(obj.GameObject):
+    
+    tex_index       = 0x32
+    width           = 32
+    height          = 32
+    tile_width      = 1
+    tile_height     = 1
+

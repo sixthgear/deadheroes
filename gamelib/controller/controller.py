@@ -28,7 +28,7 @@ class Controller(pyglet.window.Window):
         self.states = {}
         self.current_state = None
         self.fps_display = pyglet.clock.ClockDisplay()
-        self.show_fps = True
+        self.show_fps = False
         self.timer = fixedsteploop.FixedStepLoop(self.update, self.DT, self.DT*2)
         self.session = Session(self)
         self.player_data = {}

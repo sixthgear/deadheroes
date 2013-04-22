@@ -40,3 +40,4 @@ class Anvil(obj.GameObject):
     def __init__(self, x, y):
         super(Anvil, self).__init__(x, y)
         self.acc.y = -2000
+
