@@ -68,6 +68,13 @@ class GameObject(object):
     def center(self):
         return self.pos + vector.Vec2d(self.width/2, self.height/2)
 
+    def has_los(self, player, map):
+        # if not self.rocket and delta.magnitude_sq < 250000:
+        tile, dist = map.raycast(self.center, player.center)
+        delta = player.center - self.center
+        return tile and dist > delta.magnitude
+
+
     def ground(self):
         self.air = ON_GROUND        
         self.acc.y = 0

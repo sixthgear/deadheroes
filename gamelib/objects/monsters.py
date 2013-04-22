@@ -24,7 +24,7 @@ class Zombie(obj.GameObject):
 
         delta = self.pos - player.pos
         self.face(1 if (self.pos - self.pos0).x < 0 else 0)
-        if delta.magnitude_sq < 312*312:
+        if delta.magnitude_sq < 312*312 and self.has_los(player, map):
             if delta.x > 0:
                 self.acc.x = -random.randrange(500)
             else:
@@ -55,7 +55,7 @@ class Robot(obj.GameObject):
         delta = self.pos - player.pos 
         self.face(1 if (self.pos - self.pos0).x < 0 else 0)
 
-        if self.air == obj.ON_GROUND and abs(delta.y) < 32:
+        if self.air == obj.ON_GROUND and abs(delta.y) < 32 and self.has_los(player, map):
             if delta.x > 0:
                 self.acc.x = -1800
             else:
@@ -85,13 +85,8 @@ class RocketLauncher(obj.GameObject):
         if not player.alive:
             return
 
-        # if not self.rocket and delta.magnitude_sq < 250000:
-        tile, dist = map.raycast(self.center, player.center)
-        delta = player.center - self.center
-        # if ray:
-            # print ray.x, ray.y
-        if not self.rocket and tile and dist > delta.magnitude:
-            
+        if not self.rocket and self.has_los(player, map):
+            delta = player.center - self.center
             self.rocket = Rocket(self.pos.x+16, self.pos.y+16, self, player)
             self.rocket.acc = delta.normal * 500
             map.spawn_object(self.rocket)
