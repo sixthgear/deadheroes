@@ -34,7 +34,9 @@ class Game(object):
     def init_state(self):
         random.seed(0)
         self.tick = 0        
-        self.replay = array.array('B')
+        self.replay = array.array('B')    
+        self.replay_controls = 0
+        self.replay_offset = 0
         self.map.init_state()
         self.map._highlight.enabled = False
         self.hud = hud_game.HUD()
@@ -67,7 +69,22 @@ class Game(object):
             controls |= player.KEY_RIGHT
         if self.keys[key.SPACE]:
             controls |= player.KEY_JUMP
-        self.replay.append(controls)
+
+        if controls != self.replay_controls or self.replay_offset == 0xFF:
+            self.replay_controls = controls            
+            self.replay.append(self.replay_offset)
+            self.replay.append(controls)
+            # print self.replay_offset, controls
+            self.replay_offset = 0
+            
+        else:
+            self.replay_offset += 1
+
+        # 0xFF 
+        # - first byte - offset (0-255)
+        # - second byte - key flags
+        # self.replay.append(controls)
+
         return controls
 
     def upload_replay(self, won):
@@ -88,7 +105,8 @@ class Game(object):
             self.map.player.update(dt2)
 
             for d in self.map.doors:
-                if d.won:                        
+                if d.won:
+                    # defer(self.window.replay, self.map, self.replay)
                     self.map.player.won = True                    
                     self.playing = False
                     self.upload_replay(won=True)
@@ -170,8 +188,8 @@ class Game(object):
 
             # rehash all objects in new position
             # TODO: skip this for static objects
-            for o in self.map.objects:
-                self.map.hash_object(o)
+            
+            self.map.hash_object(o)
     
         # ---
         # end collisions, begin cleanup

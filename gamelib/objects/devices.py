@@ -11,24 +11,38 @@ class Door(obj.GameObject):
     def __init__(self, *args, **kwargs):
         super(Door, self).__init__(*args, **kwargs)
         self.won = False
+        self.opened = False
+
+    def open(self):
+        self.get_sprite(2)
+        self.opened = True
+
+    def ai(self, player, map):
+        if not [c for c in map.chests if not c.opened] and not self.opened:
+            self.open()
 
     def collide_obj(self, o):
-        if o.treasure_collected:
+        if self.opened:
             self.won = True
     
 class Chest(obj.GameObject):
-    tex_index       = 0x72
+    tex_index       = 0x78
     width           = 30
     height          = 27
     tile_width      = 1
     tile_height     = 1
 
+    def __init__(self, *args, **kwargs):
+        super(Chest, self).__init__(*args, **kwargs)
+        self.opened = False
+
+    def open(self):
+        self.get_sprite(1)
+        self.opened = True
+
     def collide_obj(self, o):
-        self.sprite.image = obj.sprites[0x73]
-        self.sprite.image.anchor_x = self.width / 2 
-        self.sprite.image.anchor_y = self.height / 2
-        self.sprite.set_position(self.pos.x+self.width/2, self.pos.y+self.height/2)
-        o.treasure_collected = True
+        if not self.opened:
+            self.open()
 
 class Anvil(obj.GameObject):
     tex_index       = 0x60

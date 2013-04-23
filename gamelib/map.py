@@ -132,9 +132,15 @@ class Map(object):
         self.spawn_objects()
         self.spawn_player()         
         self.doors = []
+        self.chests = []
+        
         for o in self.objects:
             if o.__class__ == INFO[DOOR].cls:
                 self.doors.append(o)   
+
+        for o in self.objects:
+            if o.__class__ == INFO[CHEST].cls:
+                self.chests.append(o)
 
     @classmethod
     def load(cls, dungeon_id, name, data):
@@ -154,7 +160,6 @@ class Map(object):
             for x in range(m.width):
                 i = y * m.width + x
                 m.grid[i] = Tile(x, y, data['grid'][i])
-
 
         m.build_edges()
 
@@ -388,35 +393,29 @@ class Map(object):
             step_x = -1            
             factor = (origin.x % MAP_TILESIZE) / delta.x
             tmax_x = (delta*factor).magnitude 
-            tdelta_x = (delta * (MAP_TILESIZE / delta.x)).magnitude
         elif delta.x > 0:
             step_x = 1
             factor = (32 - origin.x % MAP_TILESIZE) / delta.x
             tmax_x = (delta*factor).magnitude 
-            tdelta_x = (delta * (MAP_TILESIZE / delta.x)).magnitude
         else:
             step_x = 0
             tmax_x = 0.0    # ray length before we cross x boundary
-            tdelta_x = 999999
 
         if delta.y < 0:
             step_y = -1
             factor = (origin.y % MAP_TILESIZE) / delta.y
             tmax_y = (delta*factor).magnitude             
-            tdelta_y = (delta * (MAP_TILESIZE / delta.y)).magnitude
         elif delta.y > 0:
             step_y = 1
             factor = (32 - origin.y % MAP_TILESIZE) / delta.y
             tmax_y = (delta*factor).magnitude             
-            tdelta_y = (delta * (MAP_TILESIZE / delta.y)).magnitude
         else:
             step_y = 0
             tmax_y = 0.0    # ray length before we cross y boundary
-            tdelta_y = 999999
 
         # ray length to travel one tile horizontally
-        
-        
+        tdelta_x = (delta * (MAP_TILESIZE / delta.x)).magnitude
+        tdelta_y = (delta * (MAP_TILESIZE / delta.y)).magnitude
 
         while 0 <= x < self.width and 0 <= y < self.height:
 
@@ -425,7 +424,7 @@ class Map(object):
             if not tile.is_empty:
                 return tile, min(tmax_x, tmax_y)
 
-            if tmax_x < tmax_y: # or step_y == 0
+            if tmax_x < tmax_y or step_y == 0:
                 tmax_x += tdelta_x
                 x += step_x
             else:

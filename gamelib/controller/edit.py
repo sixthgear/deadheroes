@@ -91,6 +91,10 @@ class Editor(object):
         # clear map
         if symbol == key.C:
             self.map = map.Map(40, 23)
+        
+        if symbol == key.M:
+            for o in self.map.objects:
+                print o
 
         # set block type
         if symbol == key._0:

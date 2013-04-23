@@ -43,10 +43,15 @@ class GameObject(object):
         self.alive = True
         self.tiles = set()
         self.anim = None
+        
+        img = image.Texture.create(self.tile_width * 32, self.tile_height * 32)
+        self.sprite = sprite.Sprite(img)
+        self.get_sprite()
 
+    def get_sprite(self, offset = 0):
         if not sys.modules.has_key('gamelib.controller.headless'):
             if self.tile_width == 1:
-                self.sprite = sprite.Sprite(sprites[self.tex_index])
+                self.sprite.image = sprites[self.tex_index + offset]
                 self.sprite.image.anchor_x = self.width / 2 
                 self.sprite.image.anchor_y = self.height / 2
                 self.sprite.set_position(self.pos.x+ self.width/2, self.pos.y+self.height/2)
@@ -54,8 +59,8 @@ class GameObject(object):
                 # print type(sprites[self.tex_index])
                 img = image.Texture.create(self.tile_width * 32, 64)
                 for i in range(self.tile_width):
-                    img.blit_into(sprites[self.tex_index + i].image_data, 32 * i, 0, 0)
-                self.sprite = sprite.Sprite(img)
+                    img.blit_into(sprites[self.tex_index + i + offset].image_data, 32 * i, 0, 0)
+                self.sprite.image = img
                 self.sprite.image.anchor_x = self.width / 2 
                 self.sprite.image.anchor_y = self.height / 2
                 self.sprite.set_position(self.pos.x+ self.width/2, self.pos.y+self.height/2)

@@ -24,6 +24,7 @@ class Player(obj.GameObject):
         self.jump_distance = 0
         self.jump_timer = 0
         self.fall_timer = self.grace_jump_after
+        self.jump_decay = 0.95
         self.jump_held = False
 
         frames = obj.sprites[0:16]
@@ -35,8 +36,7 @@ class Player(obj.GameObject):
         self.animation['jump'] = frames[14]
         self.animation['fall'] = frames[15]
         self.anim = self.animation['idle']
-        self.sprite.image = self.anim
-        self.treasure_collected = False
+        self.sprite.image = self.anim        
         self.won = False
 
     def update(self, dt2):
@@ -99,7 +99,7 @@ class Player(obj.GameObject):
                     # print 'now falling'
                 else:
                     self.pos.y += self.jump_distance
-                    self.jump_distance *= 0.95
+                    self.jump_distance *= self.jump_decay
 
             # give 5 ticks of grace time that jump can be hit before a platform is touched
             elif self.air == obj.FALLING and not self.jump_held and self.jump_timer == 0:
@@ -133,6 +133,7 @@ class Player(obj.GameObject):
         self.air = obj.JUMPING
         self.pos0.y = self.pos.y - 4.0
         self.acc.y = -2000
+        self.jump_decay = 0.95
         self.jump_distance = 1.5
         self.jump_timer = 0
         self.fall_timer = self.grace_jump_after

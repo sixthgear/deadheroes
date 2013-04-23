@@ -141,11 +141,11 @@ class Rocket(obj.GameObject):
         # print rel_angle        
         if rel_angle < 0:
             self.angle += 20
-            self.acc = vector.Vec2d(1200,0)
+            self.acc = vector.Vec2d(1000,0)
             self.acc.rotate(self.angle)
         else:
             self.angle -= 20
-            self.acc = vector.Vec2d(1200,0)
+            self.acc = vector.Vec2d(1000,0)
             self.acc.rotate(self.angle)            
 
 class Emitter(obj.GameObject):

@@ -27,6 +27,7 @@ class Replay(play.Game):
         self.tick = 0        
         self.map = dungeon                            
         self.init_state(replay)
+        self.keys = None
 
         if not sys.modules.has_key('gamelib.controller.headless'):
             self.window = window
@@ -53,6 +54,8 @@ class Replay(play.Game):
     def init_state(self, replay):
         super(Replay, self).init_state()        
         self.replay = replay
+        self.replay_counter = 0
+        self.playing = True
         # MULTI REPLAY SUPPORT
         # self.replay_archive.sort(key=lambda r: len(r), reverse=True)
         # self.ghosts = [player.Player(32, 32) for r in self.replay_archive[1:]]
@@ -60,24 +63,37 @@ class Replay(play.Game):
 
 
     def sample_input(self):
-        return self.replay[self.tick]
+
+        next = self.replay[self.replay_counter]
+        if self.replay_offset == next:
+            self.replay_controls = self.replay[self.replay_counter+1]
+            self.replay_offset = 0
+            self.replay_counter += 2
+        else:
+            self.replay_offset += 1
+        
+        if self.replay_counter >= len(self.replay):
+            print 'Replay finished.  {} bytes'.format(len(self.replay))            
+            print 'Player pos: ', self.map.player.pos
+            print 'Player acc: ', self.map.player.acc
+            self.playing = False
+
+        return self.replay_controls
+
+        
 
     def update(self, dt2):
         """
         Sample input, integrate game physics, and resolve collisions.
         """
         
+        
+
         super(Replay, self).update(dt2)
 
-        if self.tick >= len(self.replay):
-            print 'Replay finished.'
-            if not sys.modules.has_key('gamelib.controller.headless'):                            
-                pyglet.clock.schedule_once(self.window.play, 0.0)
-            print 'Player pos: ', self.player.pos
-            print 'Player acc: ', self.player.acc    
-            return 0
-        else:
-            return 1
+        
+            # if not sys.modules.has_key('gamelib.controller.headless'):
+            #     pyglet.clock.schedule_once(self.window.play, 0.0)
             
     def on_key_press(self, symbol, modifiers):
         """
@@ -86,7 +102,9 @@ class Replay(play.Game):
         if symbol == key.ESCAPE:
             pyglet.app.exit()
         elif symbol == key.TAB:
-            pyglet.clock.schedule_once(self.window.edit, 0.0)
-            self.map._highlight.enabled = True                    
+            pass
+            # pyglet.clock.schedule_once(self.window.edit, 0.0)
+            # self.map._highlight.enabled = True                    
         elif symbol == key.SPACE:
-            pyglet.clock.schedule_once(self.window.play, 0.0)
+            pass
+            # pyglet.clock.schedule_once(self.window.play, 0.0)

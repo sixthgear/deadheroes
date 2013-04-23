@@ -100,10 +100,10 @@ class Controller(pyglet.window.Window):
     def replay(self, map, rep):
         """
         """
-        state = replay.Replay(window=self, dungeon=map, replay=rep)
-        state.save()
+        
+        # state.save()
 
-        self.switch('replay', state)
+        self.switch('replay',  persist=False, state=replay.Replay(window=self, dungeon=map, replay=rep))
 
     def update(self, dt):
         self.current_state.update(self.DT2)
