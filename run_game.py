@@ -19,7 +19,7 @@ if not pyglet.media.have_avbin:
 # run game
 from gamelib.controller import controller
 c = controller.Controller()    
-# c.run()
+c.run()
 
-import cProfile
-cProfile.run('c.run()', 'go.log-cprofile')
+# import cProfile
+# cProfile.run('c.run()', 'go.log-cprofile')

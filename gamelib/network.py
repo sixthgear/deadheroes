@@ -24,7 +24,7 @@ def SessionCheck(func):
     return wrapper
 
 class Session(object):
-    def __init__(self, controller, server = 'http://misadventuregames.com:8000'): # http://localhost:8000'):
+    def __init__(self, controller, server = 'http://misadventuregames.com:8000'): # http://localhost:8000
         self.controller = controller
         self.server = server
         self.http_session = None
@@ -83,6 +83,7 @@ class Session(object):
 
         if resp.status_code == requests.codes.ok:
             try:
+                # print resp.text
                 return json.loads(resp.text)
             except AttributeError:
                 return None
@@ -92,7 +93,7 @@ class Session(object):
     @SessionCheck
     def get_dungeon(self, dungeon_id=None):
         if dungeon_id:
-            frag = urlparse.urljoin(urls['dungeon'], dungeon_id)
+            frag = urlparse.urljoin(urls['dungeon'], str(dungeon_id))
             url = urlparse.urljoin(self.server, frag)
         else:
             url = urlparse.urljoin(self.server, urls['dungeon'])
@@ -145,7 +146,7 @@ class Session(object):
 
     @SessionCheck
     def upload_replay(self, username, dungeon_id, replay, won):
-        url = urlparse.urljoin(self.server, urls['replay'] + dungeon_id)
+        url = urlparse.urljoin(self.server, urls['replay'] + str(dungeon_id))
         # print url
         data = {
             'username': username,            
