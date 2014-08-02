@@ -24,7 +24,7 @@ def SessionCheck(func):
     return wrapper
 
 class Session(object):
-    def __init__(self, controller, server = 'http://misadventuregames.com:8000'): # http://localhost:8000
+    def __init__(self, controller, server='http://localhost:8000'): # http://misadventuregames.com:8000
         self.controller = controller
         self.server = server
         self.http_session = None
@@ -56,7 +56,7 @@ class Session(object):
 
     @SessionCheck
     def get_player(self):
-        
+
         url = urlparse.urljoin(self.server, urls['player'])
 
         try:
@@ -149,11 +149,11 @@ class Session(object):
         url = urlparse.urljoin(self.server, urls['replay'] + str(dungeon_id))
         # print url
         data = {
-            'username': username,            
+            'username': username,
             'replay': replay,
             'player_win': str(won).lower()
         }
-        
+
         try:
             resp = self.http_session.post(url, data)
         except requests.exceptions.RequestException:

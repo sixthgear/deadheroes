@@ -15,7 +15,7 @@ if not sys.modules.has_key('gamelib.controller.headless'):
     from pyglet.gl import *
 
 # pixel size of a tile
-MAP_TILESIZE = 32          
+MAP_TILESIZE = 32
 
 # edge flag constants
 E_NONE                      = 0x00
@@ -28,20 +28,20 @@ E_NOT_RIGHT                 = ~E_RIGHT & 0xF
 E_NOT_BOTTOM                = ~E_BOTTOM & 0xF
 E_NOT_LEFT                  = ~E_LEFT & 0xF
 E_ALL                       = 0x0F
-    
-# rotation constants    
+
+# rotation constants
 R_0                         = 0x00
 R_90                        = 0x03
 R_180                       = 0x02
 R_270                       = 0x01
-    
-# flip contants 
+
+# flip contants
 FLIP_NONE                   = 0x00
 FLIP_HORZ                   = 0x01
 FLIP_VERT                   = 0x02
 FLIP_BOTH                   = 0x03
-    
-# tile type constants   
+
+# tile type constants
 T_EMPTY                     = 0x00
 T_BLOCK_WOOD                = 0x01
 T_BLOCK_CONCRETE            = 0x02
@@ -67,18 +67,34 @@ TEX_MUT = {
     E_NOT_BOTTOM:           (16, R_90),
     E_NOT_LEFT:             (16, R_180),
     E_NOT_TOP:              (16, R_270),
-    E_TOP | E_BOTTOM:       (32, R_0),                    
+    E_TOP | E_BOTTOM:       (32, R_0),
     E_LEFT | E_RIGHT:       (32, R_270),
     E_LEFT | E_TOP:         (48, R_0),
-    E_TOP | E_RIGHT:        (48, R_90),               
+    E_TOP | E_RIGHT:        (48, R_90),
     E_RIGHT | E_BOTTOM:     (48, R_180),
-    E_BOTTOM | E_LEFT:      (48, R_270),               
+    E_BOTTOM | E_LEFT:      (48, R_270),
     E_TOP:                  (64, R_0),
     E_RIGHT:                (64, R_90),
     E_BOTTOM:               (64, R_180),
     E_LEFT:                 (64, R_270),
     E_NONE:                 (80, R_0),
 }
+
+class Chunk(object):
+    """
+    A Chunk is a 4x4 grid that can be used to generate a random dungeon.
+    """
+    def __init__(self, width, height, name=''):
+        """
+        Creates a new blank map.
+        """
+        self.width = width      # width of this map in tiles
+        self.height = height    # height of this map in tiles
+
+        # create grid
+        self.grid = [Tile(t%width, t/width, type=T_EMPTY) for t in range(width*height)]
+
+
 
 class Map(object):
     """
@@ -98,16 +114,20 @@ class Map(object):
         self.deaths = 0         # the number of players to meet their demise here
         self.pending_budget = 0
 
+
+        # chunks
+        self.chunks = []
+
         # create grid
         self.grid = [Tile(t%width, t/width, type=T_EMPTY) for t in range(width*height) ]
-        
+
         # live object data
         # these are all the game objects the maps needs to render over top of the tiles
         # this includes enemies, switches, wires, etc.
         self.player = None
         self.objects = []
         self.object_spawn_list = {76: CHEST, 42: DOOR}
-        self.player_spawn = 42            
+        self.player_spawn = 42
         self.doors = []
 
         # create edges
@@ -116,13 +136,13 @@ class Map(object):
                 self.change(tile.x, tile.y, T_BLOCK_CONCRETE, force=True)
 
         if not sys.modules.has_key('gamelib.controller.headless'):
-            # internal rendering data                        
+            # internal rendering data
             self._highlight = pyglet.graphics.vertex_list(4, 'v2f')
             self._highlight.enabled = False
-            self._object_sprite_batch = pyglet.graphics.Batch()            
+            self._object_sprite_batch = pyglet.graphics.Batch()
             self._vertex_list = pyglet.graphics.vertex_list(0, 'v2f', 't2f')
             self._vertex_list_dirty = True
-        
+
         self.init_state()
 
     def init_state(self):
@@ -130,13 +150,13 @@ class Map(object):
         self.despawn_objects()
         self._object_sprite_batch = pyglet.graphics.Batch()
         self.spawn_objects()
-        self.spawn_player()         
+        self.spawn_player()
         self.doors = []
         self.chests = []
-        
+
         for o in self.objects:
             if o.__class__ == INFO[DOOR].cls:
-                self.doors.append(o)   
+                self.doors.append(o)
 
         for o in self.objects:
             if o.__class__ == INFO[CHEST].cls:
@@ -147,10 +167,10 @@ class Map(object):
         """
         Loads a map from the server and returns a new Map obj.
         """
-        # with open ('mapdata.json', 'r') as f:             
+        # with open ('mapdata.json', 'r') as f:
             # data = json.load(f)
         # print data
-        # data = json.loads(data)    
+        # data = json.loads(data)
         m = cls(data['width'], data['height'])
         m.dungeon_id = dungeon_id
         m.name = name
@@ -206,11 +226,11 @@ class Map(object):
         """
         Writes a map to the server in JSON.
         """
-        with open ('mapdata.json', 'w') as f:            
+        with open ('mapdata.json', 'w') as f:
             f.write(self.export_json())
 
     def despawn_object(self, o):
-        # TODO remove from batch too?        
+        # TODO remove from batch too?
         for tile in o.tiles:
             tile.objects.discard(o)
         self.objects.remove(o)
@@ -227,14 +247,14 @@ class Map(object):
 
         if self.player and self.player.sprite:
             self.player.sprite.delete()
-            
+
         x = self.player_spawn % self.width * MAP_TILESIZE
         y = self.player_spawn / self.width * MAP_TILESIZE
-        self.player = player.Player(x, y)         
-        self.hash_object(self.player)        
+        self.player = player.Player(x, y)
+        self.hash_object(self.player)
 
     def spawn_objects(self):
-        
+
         for i, obj_type in self.object_spawn_list.iteritems():
             x = i%self.width * MAP_TILESIZE
             y = i/self.width * MAP_TILESIZE
@@ -246,9 +266,9 @@ class Map(object):
         for tile in self.grid:
             tile.objects = set()
         self.objects = []
-        
-    # tile lookup convinience methods        
-    def get(self, x, y): 
+
+    # tile lookup convinience methods
+    def get(self, x, y):
         return self.grid[y*self.width + x]
     def offset(self, tile, x=0, y=0):
         return self.get(tile.x+x, tile.y+y)
@@ -263,17 +283,17 @@ class Map(object):
 
     def is_bound(self, tile, edge=E_ALL):
         """
-        Returns true if this tile is on the edge of the map. 
+        Returns true if this tile is on the edge of the map.
         May be passed an edge flag to check one or more edges specifically.
         """
         if edge & E_LEFT and tile.x == 0:
             return True
         if edge & E_BOTTOM and tile.y == 0:
-            return True            
+            return True
         if edge & E_RIGHT and tile.x == self.width - 1:
             return True
         if edge & E_TOP and tile.y == self.height - 1:
-            return True            
+            return True
         return False
 
     def in_bounds(self, tile):
@@ -284,7 +304,7 @@ class Map(object):
         Modify the map and mark dirty so we rebuild the vertex list.
         """
 
-        if x < 0 or y < 0 or x > self.width - 1 or y > self.height -1:            
+        if x < 0 or y < 0 or x > self.width - 1 or y > self.height -1:
             return
 
         tile = self.get(x,y)
@@ -314,20 +334,20 @@ class Map(object):
             # need to simply NOT them. That is if no edges are set, set all of them. If the top-left is set,
             # set the bottom right.
             tile.edges = ~tile.edges & 0XF
-            
+
             # duplicate each edge to neighbor on the opposite side
             # top
             if not self.is_bound(tile, E_TOP):
-                self.up(tile).edges = (self.up(tile).edges & E_NOT_BOTTOM) | ((tile.edges & E_TOP) << 2) 
+                self.up(tile).edges = (self.up(tile).edges & E_NOT_BOTTOM) | ((tile.edges & E_TOP) << 2)
             # right
             if not self.is_bound(tile, E_RIGHT):
-                self.right(tile).edges = (self.right(tile).edges & E_NOT_LEFT) | ((tile.edges & E_RIGHT) << 2) 
+                self.right(tile).edges = (self.right(tile).edges & E_NOT_LEFT) | ((tile.edges & E_RIGHT) << 2)
             # bottom
             if not self.is_bound(tile, E_BOTTOM):
                 self.down(tile).edges = (self.down(tile).edges & E_NOT_TOP) | ((tile.edges & E_BOTTOM) >> 2)
             # left
             if not self.is_bound(tile, E_LEFT):
-                self.left(tile).edges = (self.left(tile).edges & E_NOT_RIGHT) | ((tile.edges & E_LEFT) >> 2) 
+                self.left(tile).edges = (self.left(tile).edges & E_NOT_RIGHT) | ((tile.edges & E_LEFT) >> 2)
 
         # switch the tile type if necessary
         if tile.type != type:
@@ -337,7 +357,7 @@ class Map(object):
     def place(self, x0, y0, type, state=None):
         """
         Place an object on the map.
-        """        
+        """
 
         # check tiles to make sure empty
         x1, y1 = x0 + INFO[type].cls.tile_width, y0 + INFO[type].cls.tile_height
@@ -379,24 +399,24 @@ class Map(object):
                 if o.pos.x / MAP_TILESIZE == x and o.pos.y / MAP_TILESIZE == y:
                     target_obj = o
             self.despawn_object(target_obj)
-            del self.object_spawn_list[y*self.width+x]    
-    
+            del self.object_spawn_list[y*self.width+x]
+
     def raycast(self, origin, target):
         """
         http://www.cse.yorku.ca/~amana/research/grid.pdf
         """
         delta = target - origin
         x, y = int(origin.x)/MAP_TILESIZE, int(origin.y)/MAP_TILESIZE
-   
+
         # amount to increment each cell by
         if delta.x < 0:
-            step_x = -1            
+            step_x = -1
             factor = (origin.x % MAP_TILESIZE) / delta.x
-            tmax_x = (delta*factor).magnitude 
+            tmax_x = (delta*factor).magnitude
         elif delta.x > 0:
             step_x = 1
             factor = (32 - origin.x % MAP_TILESIZE) / delta.x
-            tmax_x = (delta*factor).magnitude 
+            tmax_x = (delta*factor).magnitude
         else:
             step_x = 0
             tmax_x = 0.0    # ray length before we cross x boundary
@@ -404,11 +424,11 @@ class Map(object):
         if delta.y < 0:
             step_y = -1
             factor = (origin.y % MAP_TILESIZE) / delta.y
-            tmax_y = (delta*factor).magnitude             
+            tmax_y = (delta*factor).magnitude
         elif delta.y > 0:
             step_y = 1
             factor = (32 - origin.y % MAP_TILESIZE) / delta.y
-            tmax_y = (delta*factor).magnitude             
+            tmax_y = (delta*factor).magnitude
         else:
             step_y = 0
             tmax_y = 0.0    # ray length before we cross y boundary
@@ -420,7 +440,7 @@ class Map(object):
         while 0 <= x < self.width and 0 <= y < self.height:
 
             tile = self.get(x, y)
-            
+
             if not tile.is_empty:
                 return tile, min(tmax_x, tmax_y)
 
@@ -446,10 +466,10 @@ class Map(object):
 
     def hash_object(self, o):
         """
-        Hash objects against the map tiles so we can quickly check what objects occupy this cell during 
+        Hash objects against the map tiles so we can quickly check what objects occupy this cell during
         collision tests.
         """
-        
+
         new_tiles = set(self.tiles_from_object(o))
 
         # use set intersections to determine which tiles to remove the object from
@@ -484,17 +504,17 @@ class Map(object):
         """
         Collide one object against the map, and also resolve those collisions since we know the map doesn't move.
         """
-        
+
         # assume this object is falling unless we resolve a ground collision
         on_ground = False
 
         # store a list of intersecting tiles to return
         collisions = []
         # if obj.pos.y in [128, 160]: print 'debuggining', obj.pos.y
-        for tile in self.tiles_from_object(obj):            
+        for tile in self.tiles_from_object(obj):
             # if obj.pos.y in [128, 160]: print tile.x, tile.y
             tpos = vector.Vec2d(tile.x*MAP_TILESIZE, tile.y*MAP_TILESIZE)
-        
+
             # do nothing for empty tiles
             if tile.type == T_EMPTY:
                 continue
@@ -525,7 +545,7 @@ class Map(object):
                     projected_edge = ((obj.pos.y + obj.height) - tpos.y, E_BOTTOM)
                 if left and (obj.pos.x + obj.width) - tpos.x < projected_edge[0]:
                     projected_edge = ((obj.pos.x + obj.width) - tpos.x, E_LEFT)
-                
+
                 # add this tile to collisions list since we performed a projection out of it
                 if projected_edge[1] != 0x0:
                     collisions.append(tile)
@@ -534,28 +554,28 @@ class Map(object):
                 if projected_edge[1] == E_TOP:
                     obj.pos.y += projected_edge[0]
                     # obj.pos0.y = obj.pos.y
-                    on_ground = True            
+                    on_ground = True
                 elif projected_edge[1] == E_RIGHT:
-                    obj.pos.x += projected_edge[0]                        
+                    obj.pos.x += projected_edge[0]
                 elif projected_edge[1] == E_BOTTOM:
                     obj.pos.y -= projected_edge[0]
                 elif projected_edge[1] == E_LEFT:
                     obj.pos.x -= projected_edge[0]
-    
-        # all done        
-        if on_ground:                        
-            obj.ground()            
-        else:                        
-            obj.fall()            
+
+        # all done
+        if on_ground:
+            obj.ground()
+        else:
+            obj.fall()
 
         return collisions
-        
+
 
     def draw(self):
         """
         Render the current map, checking if the vertex list has been dirtied and needs to be rebuilt.
         """
-        # check if we need to rebuild the vertex list. We defer this until drawing time so that 
+        # check if we need to rebuild the vertex list. We defer this until drawing time so that
         # every operation that modifies the map doesn't need to rebuild this list every time.
         if self._vertex_list_dirty:
             self.rebuild_vertices()
@@ -585,15 +605,15 @@ class Map(object):
         """
         Cycle through our map data and build a grid of quads with correct texcoords. This will be used
         to render the map.
-        """ 
-        self._vertex_list.delete()        
+        """
+        self._vertex_list.delete()
         vertices = []
         tex_coords = []
 
         for tile in self.grid:
 
             # don't bother creating vertices for empty tiles
-            if tile.type == T_EMPTY:                 
+            if tile.type == T_EMPTY:
                 continue
 
             # add vertices and tex coords for this tile
@@ -620,8 +640,8 @@ class Map(object):
                 edges |= E_LEFT
 
             tex_coords += tile.tex(tile.type + TEX_MUT[edges][0], TEX_MUT[edges][1])
-            
-            # add corner decals on stacked tiles            
+
+            # add corner decals on stacked tiles
             if n_up and n_lf and n_up.type == tile.type and n_lf.type == tile.type and self.offset(tile, -1, 1).type != tile.type:
                 vertices += tile.quad
                 tex_coords += tile.tex(tile.type + 96, R_0)
@@ -629,15 +649,15 @@ class Map(object):
             if n_up and n_rg and n_up.type == tile.type and n_rg.type == tile.type and self.offset(tile, 1, 1).type != tile.type:
                 vertices += tile.quad
                 tex_coords += tile.tex(tile.type + 96, R_90)
-            
+
             if n_dn and n_rg and n_dn.type == tile.type and n_rg.type == tile.type and self.offset(tile, 1, -1).type != tile.type:
                 vertices += tile.quad
-                tex_coords += tile.tex(tile.type + 96, R_180)                    
-            
+                tex_coords += tile.tex(tile.type + 96, R_180)
+
             if n_dn and n_lf and n_dn.type == tile.type and n_lf.type == tile.type and self.offset(tile, -1, -1).type != tile.type:
                 vertices += tile.quad
                 tex_coords += tile.tex(tile.type + 96, R_270)
-                    
+
         self._vertex_list = pyglet.graphics.vertex_list(len(vertices)/2, 'v2f', 't2f')
         self._vertex_list.vertices = vertices
         self._vertex_list.tex_coords = tex_coords
@@ -657,7 +677,7 @@ class Map(object):
         if self.is_bound(tile):
             self._highlight.enabled = False
         else:
-            self._highlight.vertices = tile.quad                    
+            self._highlight.vertices = tile.quad
             self._highlight.enabled = True
 
 class Tile(object):
@@ -667,7 +687,7 @@ class Tile(object):
     def __init__(self, x, y, type, edges=0):
         self.x = x
         self.y = y
-        self.type = type        
+        self.type = type
         self.edges = edges
 
         # set of references to objects contained here
@@ -689,7 +709,7 @@ class Tile(object):
         return self.edges & edge
 
     @property
-    def quad(self):        
+    def quad(self):
         return [
             self.x*MAP_TILESIZE, self.y*MAP_TILESIZE,
             self.x*MAP_TILESIZE, (self.y+1)*MAP_TILESIZE,

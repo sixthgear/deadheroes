@@ -11,8 +11,9 @@ from gamelib import map
 from gamelib.ui import hud_edit
 from gamelib.util_hax import defer
 
-MODE_TILE = 0x01
-MODE_OBJ = 0x02
+MODE_TILE =     0x00
+MODE_OBJ =      0x01
+MODE_CHUNK =    0x02
 
 class Editor(object):
     """
@@ -55,9 +56,15 @@ class Editor(object):
     
     def on_draw(self):
         self.window.clear()
-        self.map.draw()
+
+        if self.mode == MODE_CHUNK:
+            pass
+        else:
+            self.map.draw()
+
         self.hud.draw()
         self.ghost_cursor.draw()
+
         if self.window.show_fps: 
             self.window.fps_display.draw()
 
@@ -88,6 +95,23 @@ class Editor(object):
             else:
                 print 'Error: the map couldn\'t be saved!'
 
+
+        if symbol == key.GRAVE:
+            # enter chunk editing mode
+
+            self.mode = ((self.mode + 1) % 3)
+
+            if self.mode == MODE_TILE:
+                self.hud.labels['title'].text = 'DESIGN YOUR DUNGEON (TILE)'
+            elif self.mode == MODE_OBJ:
+                self.hud.labels['title'].text = 'DESIGN YOUR DUNGEON (OBJ)'
+            elif self.mode == MODE_CHUNK:
+                self.hud.labels['title'].text = 'DESIGN YOUR DUNGEON (CHNK)'
+
+        if symbol == key.G:
+            # generate level from chunks
+            pass
+
         # clear map
         if symbol == key.C:
             self.map = map.Map(40, 23)
@@ -95,6 +119,17 @@ class Editor(object):
         if symbol == key.M:
             for o in self.map.objects:
                 print o
+
+        if self.mode in [MODE_TILE, MODE_CHUNK]:
+            return self.on_key_press_tile(symbol, modifiers)
+        if self.mode == MODE_OBJ:
+            return self.on_key_press_obj(symbol, modifiers)
+        if self.mode == MODE_CHUNK:
+            return self.on_key_press_chunk(symbol, modifiers)
+
+
+
+    def on_key_press_tile(self, symbol, modifiers):
 
         # set block type
         if symbol == key._0:
@@ -114,49 +149,49 @@ class Editor(object):
             self.selected_tile = map.T_SPIKES
         if symbol == key._5:
             self.mode = MODE_TILE
-            self.selected_tile = map.T_LAVA
+            self.selected_tile = map.T_LAVA            
 
-        if symbol == key.Q:
+        x = (self.selected_tile%16) * map.MAP_TILESIZE
+        y = (self.selected_tile/16) * map.MAP_TILESIZE
+        self.ghost_cursor.image = map.Map.tiles_tex.get_region(x,y,32,32)
+
+    def on_key_press_obj(self, symbol, modifiers):
+
+        if symbol == key._0:
             self.mode = MODE_OBJ
             self.selected_object = PLAYER
-        if symbol == key.W:
+        if symbol == key._1:
             self.mode = MODE_OBJ
             self.selected_object = ZOMBIE
-        if symbol == key.E:
+        if symbol == key._2:
             self.mode = MODE_OBJ
             self.selected_object = ROBOT
-        if symbol == key.R:
+        if symbol == key._3:
             self.mode = MODE_OBJ
             self.selected_object = LAUNCHER
-        if symbol == key.T:
+        if symbol == key._4:
             self.mode = MODE_OBJ
             self.selected_object = EMITTER
-        if symbol == key.Y:
+        if symbol == key._5:
             self.mode = MODE_OBJ
             self.selected_object = DOOR
-        if symbol == key.U:
+        if symbol == key._6:
             self.mode = MODE_OBJ
             self.selected_object = CHEST
-        if symbol == key.I:
+        if symbol == key._7:
             self.mode = MODE_OBJ
-            self.selected_object = ANVIL
+            self.selected_object = ANVIL            
 
-        if self.mode == MODE_OBJ:
-            t = pyglet.resource.texture('sprites.png')
+        t = pyglet.resource.texture('sprites.png')
+        index = INFO[self.selected_object].cls.tex_index
+        width = INFO[self.selected_object].cls.tile_width * map.MAP_TILESIZE
+        height = INFO[self.selected_object].cls.tile_height * map.MAP_TILESIZE
+        x = (index%16) * map.MAP_TILESIZE
+        y = (index/8) * map.MAP_TILESIZE
+        self.ghost_cursor.image = t.get_region(x,y,width,height)
 
-            index = INFO[self.selected_object].cls.tex_index
-            width = INFO[self.selected_object].cls.tile_width * map.MAP_TILESIZE
-            height = INFO[self.selected_object].cls.tile_height * map.MAP_TILESIZE
-            x = (index%16) * map.MAP_TILESIZE
-            y = (index/8) * map.MAP_TILESIZE
-
-            self.ghost_cursor.image = t.get_region(x,y,width,height)
-                        
-        else:
-            x = (self.selected_tile%16) * map.MAP_TILESIZE
-            y = (self.selected_tile/16) * map.MAP_TILESIZE
-            self.ghost_cursor.image = map.Map.tiles_tex.get_region(x,y,32,32)
-
+    def on_key_press_chunk(self, symbol, modifiers):
+        pass
 
     def on_mouse_motion(self, x, y, dx, dy): 
         x = max(0, min(self.window.width-1, x))
